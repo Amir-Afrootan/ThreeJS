@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "cannon-es": "^0.20.0",
+    "three": "^0.151.3",
+    "three-mtl-loader": "^1.0.2"
+  },
+  "devDependencies": {
+    "vite": "^4.2.1"
+  }
+}
