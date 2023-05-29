@@ -29,7 +29,7 @@ document.body.appendChild(renderer.domElement);
 const labelRenderer = new CSS2DRenderer();
 labelRenderer.setSize(window.innerWidth, window.innerHeight);
 labelRenderer.domElement.style.position = 'absolute';
-labelRenderer.domElement.style.top = '0px';
+labelRenderer.domElement.style.top = '0';
 labelRenderer.domElement.style.pointerEvents = 'none';
 document.body.appendChild(labelRenderer.domElement);
 
@@ -111,6 +111,10 @@ scene.fog = new THREE.Fog(0xffffff, 0, 300);
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 1000);
 camera.position.set(0, 90, 50); //x, y, z
 camera.lookAt(0, 0, 0);
+
+// Shadow camera helper
+const MyCameraHelper = new THREE.CameraHelper(camera);
+//scene.add(MyCameraHelper);
 //#endregion
 
 //#region Controls
@@ -193,38 +197,38 @@ const AmbientLight = new THREE.AmbientLight(0xffffff);
 //scene.add(AmbientLight);
 
 //DirectionalLight
-const light = new THREE.DirectionalLight(0xFFFFFF, 1);
-light.position.set(20, 50, 20);
-light.target.position.set(0, 0, 0);
-light.castShadow = true;
-light.shadow.bias = -0.001;
-// light.shadow.mapSize.width = 1024;
-// light.shadow.mapSize.height = 1024;
-// light.shadow.camera.near = 0.1;
-// light.shadow.camera.far = 500.0;
-// light.shadow.camera.near = 0.5;
-// light.shadow.camera.far = 500.0;
-light.shadow.camera.left = 100;
-light.shadow.camera.right = -100;
-light.shadow.camera.top = 100;
-light.shadow.camera.bottom = -100;
-scene.add(light);
+const MyDirectionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+MyDirectionalLight.position.set(20, 50, 20);
+MyDirectionalLight.target.position.set(0, 0, 0);
+MyDirectionalLight.castShadow = true;
+MyDirectionalLight.shadow.bias = -0.001;
+// MyDirectionalLight.shadow.mapSize.width = 1024;
+// MyDirectionalLight.shadow.mapSize.height = 1024;
+// MyDirectionalLight.shadow.camera.near = 0.1;
+// MyDirectionalLight.shadow.camera.far = 500.0;
+// MyDirectionalLight.shadow.camera.near = 0.5;
+// MyDirectionalLight.shadow.camera.far = 500.0;
+MyDirectionalLight.shadow.camera.left = 10;
+MyDirectionalLight.shadow.camera.right = -10;
+MyDirectionalLight.shadow.camera.top = 10;
+MyDirectionalLight.shadow.camera.bottom = -10;
+scene.add(MyDirectionalLight);
+
 //Direction Light helper
-const DLightHelper = new THREE.DirectionalLightHelper(light);
-scene.add(DLightHelper);
-// Shadow camera helper
-const ShadowCameraHelper = new THREE.CameraHelper(light.shadow.camera);
-scene.add(ShadowCameraHelper);
+const MyDirectionalLightHelper = new THREE.DirectionalLightHelper(MyDirectionalLight);
+scene.add(MyDirectionalLightHelper);
 
 // SpotLight
 const spotLight = new THREE.SpotLight(0xffffff, 1);
 spotLight.position.set(-100, 100, 0);
 spotLight.castShadow = true;
-spotLight.angle = 0.2;
-scene.add(spotLight);
+spotLight.angle = 0.1;
+//scene.add(spotLight);
+
 // SpotLight Helper
 const spotLightHelper = new THREE.SpotLightHelper(spotLight)
 scene.add(spotLightHelper);
+
 //#endregion
 
 //#region Plane
@@ -261,10 +265,19 @@ Platform.rotation.x = -Math.PI / 2;
 //#endregion
 
 //#region Cube
-const geometry = new THREE.BoxGeometry(10, 10, 10);
-const StandardMaterial = new THREE.MeshStandardMaterial({ color: 0x321975 }); // enable Shdow
-const material = new THREE.MeshBasicMaterial({ color: 0xb0524d });//, wireframe: true, wireframeLinewidth: 4 
-const cube = new THREE.Mesh(geometry, StandardMaterial);
+const CubeGeo = new THREE.BoxGeometry(10, 10, 10);
+const CubeMat = new THREE.MeshStandardMaterial(); // enable Shdow
+const color2 = new THREE.Color( 0x213911 );
+const color3 = new THREE.Color("rgb(125, 36, d5)");
+const color4 = new THREE.Color("rgb(10%, 60%, 20%)");
+const color5 = new THREE.Color( 'skyblue' );
+const color6 = new THREE.Color("hsl(0, 100%, 50%)");
+const color7 = new THREE.Color( 1, 0, 0 );
+CubeMat.color = color3
+CubeMat.roughness = 0;
+CubeMat.metalness = 0;
+
+const cube = new THREE.Mesh(CubeGeo, CubeMat);
 cube.name = "Cube";
 cube.position.y = 0;
 cube.position.set(1, 10, 1);
@@ -336,9 +349,11 @@ cube.add(box);
 //#region sphere
 const SphereGeometry = new THREE.SphereGeometry(4, 50, 50);
 const SphereTextureLoader = new THREE.TextureLoader().load('Textures/bark_willow_diff_1k.jpg');
-const SphereMaterial = new THREE.MeshLambertMaterial({
+const SphereMaterial = new THREE.MeshStandardMaterial({//MeshLambertMaterial
 	//color: 0x216971,
 	wireframe: false,
+	roughness:0,
+	metalness:1,
 	//map: SphereTextureLoader,
 	envMap: scene.background,
 });
@@ -452,7 +467,7 @@ points.push(new THREE.Vector3(-4, 0, 0));
 points.push(new THREE.Vector3(0, 4, 0));
 points.push(new THREE.Vector3(4, 0, 0));
 const geometryLine = new THREE.BufferGeometry().setFromPoints(points);
-const line = new THREE.Line(geometryLine, material);
+const line = new THREE.Line(geometryLine, CubeMat);
 scene.add(line);
 renderer.render(scene, camera);
 
@@ -622,14 +637,21 @@ function OpenContextMenu(event)
 			object.material.color.setHex(Math.random() * 0xffffff);
 			const CubeDiv = document.createElement('div');
 			CubeDiv.className = 'label';
-			//CubeDiv.textContent = 'My Simple Text';
 			CubeDiv.innerHTML = "<ul><li><a href='#'>Coffee</a></li><li>Tea</li><li>Milk</li></ul>";
+			CubeDiv.addEventListener('click', event =>
+			{
+				event.preventDefault();
+				console.log('Download clicked!');
+			});
 
 			const earthLabel = new CSS2DObject(CubeDiv);
 			earthLabel.position.set(1, 0, 0);
-			earthLabel.center.set(0, 1);
-			earthLabel.layers.set(0);
+			earthLabel.center.set(0, 0);
+			//earthLabel.layers.set(10);
 			cube.add(earthLabel);
+
+			
+			
 		}
 		else if (object.name === 'Box')
 		{

@@ -34,9 +34,9 @@ const clock = new THREE.Clock();
 
 //#region scene
 const scene = new THREE.Scene();
-const axesHelper = new THREE.AxesHelper(100);
+const axesHelper = new THREE.AxesHelper(1000);
 scene.add(axesHelper);
-const gridHelper = new THREE.GridHelper(1000, 10);
+const gridHelper = new THREE.GridHelper(1000, 5);
 scene.add(gridHelper);
 //#endregion
 
@@ -95,11 +95,50 @@ document.addEventListener('keyup', onKeyUp);
 
 
 
+
+
+
+
+// Create an HTML element and make it clickable
+const element = document.createElement('a');
+element.textContent = 'Download';
+element.href = '#';
+element.style.color = 'white';
+element.style.textDecoration = 'none';
+element.addEventListener('click', event =>
+{
+	event.preventDefault();
+	console.log('Download clicked!');
+});
+
+// Create a CSS2DRenderer and add the HTML element to the scene
+const cssRenderer = new CSS2DRenderer();
+cssRenderer.setSize(window.innerWidth, window.innerHeight);
+cssRenderer.domElement.style.position = 'absolute';
+cssRenderer.domElement.style.top = '-1';
+document.body.appendChild(cssRenderer.domElement);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function AnimateCamera()
 {
 	requestAnimationFrame(AnimateCamera);
 	//MyOrbitControls.update();
 	MyFirstPersonControls.update(clock.getDelta());
 	renderer.render(scene, camera);
+	//cssRenderer.render(scene, camera);
 }
 AnimateCamera();
