@@ -113,7 +113,7 @@ camera.position.set(0, 90, 50); //x, y, z
 camera.lookAt(0, 0, 0);
 //#endregion
 
-//#region OrbitControls
+//#region Controls
 const controls_labelRenderer = new OrbitControls(camera, labelRenderer.domElement);
 
 //const MyOrbitControls = new OrbitControls(camera, renderer.domElement);
@@ -143,14 +143,18 @@ MyFirstPersonControls.lookSpeed = 0.1;
 
 const onKeyDown = function (event)
 {
+	//console.log(event)
 	switch (event.code)
 	{
-		case 'ShiftLeft'://'KeyX'
-		//MyOrbitControls.enabled = false
-		MyFirstPersonControls.enabled = true
+		case 'ShiftLeft':
+			MyFirstPersonControls.enabled = true
 			break;
 
 		case 'Space':
+			camera.position.y += 1;
+			break;
+
+		case 'KeyX':
 			MyFirstPersonControls.enabled = true
 			camera.lookAt(0, 0, 0);
 			MyFirstPersonControls.enabled = false
@@ -162,7 +166,9 @@ const onKeyUp = function (event)
 	switch (event.code)
 	{
 		case 'ShiftLeft':
-			//MyOrbitControls.enabled = true
+			MyFirstPersonControls.enabled = false
+			break;
+		case 'Space':
 			MyFirstPersonControls.enabled = false
 			break;
 	}
