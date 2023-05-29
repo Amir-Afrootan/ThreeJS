@@ -39,6 +39,7 @@ window.addEventListener("resize", function ()
 	camera.aspect = this.window.innerWidth / this.window.innerHeight;
 	camera.updateProjectionMatrix();
 	renderer.setSize(this.window.innerWidth, window.innerHeight);
+	labelRenderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 //for select object by mouse
@@ -633,16 +634,11 @@ function OpenContextMenu(event)
 		// Display HTML content based on the object that was clicked
 		if (object.name === "Cube")
 		{
-			// <p> Display HTML content based on the object that was clicked </p>
+			labelRenderer.domElement.style.pointerEvents = '';
 			object.material.color.setHex(Math.random() * 0xffffff);
 			const CubeDiv = document.createElement('div');
 			CubeDiv.className = 'label';
 			CubeDiv.innerHTML = "<ul><li><a href='#'>Coffee</a></li><li>Tea</li><li>Milk</li></ul>";
-			CubeDiv.addEventListener('click', event =>
-			{
-				event.preventDefault();
-				console.log('Download clicked!');
-			});
 
 			const earthLabel = new CSS2DObject(CubeDiv);
 			earthLabel.position.set(1, 0, 0);
@@ -663,6 +659,7 @@ function OpenContextMenu(event)
 
 function CloseContextMenu(event)
 {
+	labelRenderer.domElement.style.pointerEvents = 'none';
 	for (let i = 0; i < scene.children.length; i++)
 	{
 		const objects = scene.children[i];
@@ -676,26 +673,10 @@ function CloseContextMenu(event)
 			}
 		}
 	}
-
-	// const labelDiv = document.querySelector(".label")
-	// console.log(labelDiv);
-	// labelDiv.innerHTML = "";
-	// labelDiv.style.display = 'none';
-	// console.log(labelDiv);
 }
 window.addEventListener('mousemove', onMouseMove);
 window.addEventListener('contextmenu', OpenContextMenu);
 window.addEventListener("dblclick", CloseContextMenu);
-
-
-
-
-
-
-
-
-
-
 
 //#endregion
 
