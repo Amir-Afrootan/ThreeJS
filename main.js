@@ -54,6 +54,7 @@ window.addEventListener('mousemove', function (e)
 
 //#region Global Variable
 const clock = new THREE.Clock();
+const PlatformGroup = new THREE.Group();
 //#endregion
 
 //#region Add Gravity, Collision, And Other Physics Laws To Your 3D Web App
@@ -110,7 +111,7 @@ scene.fog = new THREE.Fog(0xffffff, 0, 300);
 
 //#region Camera
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 1000);
-camera.position.set(0, 90, 50); //x, y, z
+camera.position.set(-200, 90, 50); //x, y, z
 camera.lookAt(0, 0, 0);
 
 // Shadow camera helper
@@ -146,13 +147,16 @@ MyFirstPersonControls.enabled = false
 MyFirstPersonControls.movementSpeed = 150;
 MyFirstPersonControls.lookSpeed = 0.1;
 
-const onKeyDown = function (event)
+const ActiveController = function (event) //// onKeyDown keypress
 {
-	//console.log(event)
+	console.log(event)
 	switch (event.code)
 	{
-		case 'ShiftLeft':
-			MyFirstPersonControls.enabled = true
+		case 'KeyE':
+			if (!MyFirstPersonControls.enabled)
+				MyFirstPersonControls.enabled = true
+			else
+				MyFirstPersonControls.enabled = false
 			break;
 
 		case 'Space':
@@ -160,26 +164,11 @@ const onKeyDown = function (event)
 			break;
 
 		case 'KeyX':
-			MyFirstPersonControls.enabled = true
 			camera.lookAt(0, 0, 0);
-			MyFirstPersonControls.enabled = false
 			break;
 	}
 };
-const onKeyUp = function (event)
-{
-	switch (event.code)
-	{
-		case 'ShiftLeft':
-			MyFirstPersonControls.enabled = false
-			break;
-		case 'Space':
-			MyFirstPersonControls.enabled = false
-			break;
-	}
-};
-document.addEventListener('keydown', onKeyDown);
-document.addEventListener('keyup', onKeyUp);
+document.addEventListener('keypress', ActiveController);// keyup, keypress, keydown
 
 function AnimateCamera()
 {
@@ -326,25 +315,24 @@ scene.add(box);
 cube.add(box);
 //#endregion
 
-//#region Hollow Box
+//#region Line
+let points = [];
+points.push(new THREE.Vector3(-4, 0, 0));
+points.push(new THREE.Vector3(0, 4, 0));
+points.push(new THREE.Vector3(4, 0, 0));
+const geometryLine = new THREE.BufferGeometry().setFromPoints(points);
+const line = new THREE.Line(geometryLine, CubeMat);
+scene.add(line);
+renderer.render(scene, camera);
 
-// // Create the outer box
-// const outerBoxGeometry = new THREE.BoxGeometry(2, 2, 2);
-// const outerBoxMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
-// const outerBoxMesh = new THREE.Mesh(outerBoxGeometry, outerBoxMaterial);
-
-// // Create the inner box
-// const innerBoxGeometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
-// const innerBoxMesh = new THREE.Mesh(innerBoxGeometry);
-
-// // Subtract the inner box from the outer box
-// const outerBoxCSG = THREE.CSG.fromMesh(outerBoxMesh);
-// const innerBoxCSG = THREE.CSG.fromMesh(innerBoxMesh);
-// const finalBoxCSG = outerBoxCSG.subtract(innerBoxCSG);
-// const finalBoxMesh = THREE.CSG.toMesh(finalBoxCSG, outerBoxMesh.matrix);
-
-// // Add the final box to the scene
-// scene.add(finalBoxMesh);
+function AnimateLine()
+{
+	requestAnimationFrame(AnimateLine);
+	line.rotation.x += 0.01;
+	line.rotation.y += 0.01;
+	renderer.render(scene, camera);
+}
+AnimateLine();
 //#endregion
 
 //#region sphere
@@ -408,10 +396,14 @@ cylinder2.add(cylinder2Label);
 //#region Cylinder Segment
 const SegmentGeo = new THREE.CylinderGeometry(1, 1, 8, 32, 1, false)
 const SegmentMat = new THREE.MeshStandardMaterial({ map: new THREE.TextureLoader().load('Textures/rusty_metal_diff_1k.png'), side: THREE.DoubleSide })
-const Segment1 = new THREE.Mesh(SegmentGeo, SegmentMat)
+let Segment1 = new THREE.Mesh(SegmentGeo, SegmentMat)
 let Segment2 = new THREE.Mesh(SegmentGeo, SegmentMat)
-Segment1.position.set(-(plane.geometry.parameters.width / 2) + 9, 40, 10);
+Segment1.position.set(-(plane.geometry.parameters.width / 2) + 9, 40, 5);
 Segment1.rotation.x = 1.6;
+
+Segment2.position.set(-(plane.geometry.parameters.width / 2) + 9, 40, -5);
+Segment2.rotation.x = 1.6;
+
 scene.add(Segment1)
 scene.add(Segment2)
 
@@ -419,9 +411,19 @@ function AnimateRotateSegment()
 {
 	requestAnimationFrame(AnimateRotateSegment);
 	Segment1.rotation.y -= 0.01;
+	Segment2.rotation.y -= 0.01;
 	renderer.render(scene, camera);
 }
 AnimateRotateSegment();
+//#endregion
+
+//#region Preheater Body
+const PreheaterBodyGeo = new THREE.CylinderGeometry(2, 2, 6, 32)
+const PreheaterBodyMat = new THREE.MeshStandardMaterial();
+PreheaterBodyMat.color = new THREE.Color(0xffffff)
+const PreheaterBody = new THREE.Mesh(PreheaterBodyGeo, PreheaterBodyMat)
+PreheaterBody.position.set(-50, 3, 40)
+PlatformGroup.add(PreheaterBody)
 //#endregion
 
 //#region second ladle with melt
@@ -462,26 +464,6 @@ glassMesh.add(waterMesh);
 //scene.add(glassMesh);
 //#endregion
 
-//#region Line
-let points = [];
-points.push(new THREE.Vector3(-4, 0, 0));
-points.push(new THREE.Vector3(0, 4, 0));
-points.push(new THREE.Vector3(4, 0, 0));
-const geometryLine = new THREE.BufferGeometry().setFromPoints(points);
-const line = new THREE.Line(geometryLine, CubeMat);
-scene.add(line);
-renderer.render(scene, camera);
-
-function AnimateLine()
-{
-	requestAnimationFrame(AnimateLine);
-	line.rotation.x += 0.01;
-	line.rotation.y += 0.01;
-	renderer.render(scene, camera);
-}
-AnimateLine();
-//#endregion
-
 //#region ribbon CurveLine
 const numPoints = 100;
 const radius = 50;
@@ -517,31 +499,31 @@ const Paths = new THREE.CatmullRomCurve3(Points);
 ]
 */
 
-const TubeGeo = new THREE.TubeGeometry(Paths, 100, 1, 2, false);
-const TubeMat = new THREE.MeshStandardMaterial({ color: 0xff0000, opacity: 1, wireframe: false, transparent: false, roughness: 0, metalness: 0 });
+const TubeGeo = new THREE.TubeGeometry(Paths, 10, 2, 2, false);
+const TubeMat = new THREE.MeshStandardMaterial({ color: 0xff0000, opacity: 1, wireframe: false, transparent: false, roughness: 1, metalness:0 });
 const Strand1 = new THREE.Mesh(TubeGeo, TubeMat);
 const Strand2 = new THREE.Mesh(TubeGeo, TubeMat);
-Strand1.position.set((-Platform.geometry.parameters.width / 2) + 10, 0, 10)
-Strand2.position.set((-Platform.geometry.parameters.width / 2) + 10, 0, -10)
+Strand1.position.set((-Platform.geometry.parameters.width / 2) + 10, 0, 5)
+Strand2.position.set((-Platform.geometry.parameters.width / 2) + 10, 0, -5)
 // Strand1.scale.set(4,4,4);
 // Strand2.scale.set(4,4,4);
 scene.add(Strand1);
 scene.add(Strand2);
+
+
+
 //#endregion
 
-//#region  define group variables before loading miodel
-const PlatformGroup = new THREE.Group();
-//#endregion
-
-//#region Tundish
+//#region Model Tundish
+//https://www.vectary.com/
 const TundishLoader = new GLTFLoader();
 let ModelTundish;
 TundishLoader.load('Models/Tundish/Tundish.gltf', function (gltf)
 {
 	const model = gltf.scene;
-	model.scale.set(40, 40, 40); // resize the model
+	model.scale.set(50, 40, 40); // resize the model
 	model.rotation.y = 1.6;
-	model.position.set(-40, 1, -10);
+	model.position.set(-40, 1, 0);
 	ModelTundish = model;
 	PlatformGroup.add(model);
 
@@ -568,6 +550,42 @@ TurretLoader.load('Models/Turret2/Turret.gltf', function (gltf)
 {
 	console.error(error);
 });
+//#endregion
+
+//#region Model Preheater
+const PreheaterLoader = new GLTFLoader();
+let ModelPreheater;
+let PreheaterStatus = "start";
+PreheaterLoader.load('Models/Preheater/Preheater.gltf', function (gltf)
+{
+	const model = gltf.scene;
+	model.scale.set(40, 40, 40);
+	model.position.set(-50, 5, 40);
+	model.rotation.y = 3.15;
+	model.rotation.z = 1;//1.58
+	ModelPreheater = model;
+	PlatformGroup.add(model);
+	function AnimateModelPreheater()
+	{
+		requestAnimationFrame(AnimateModelPreheater);
+		if (model.rotation.z <= 1.58 && PreheaterStatus == "start")
+		{
+			model.rotation.z += 0.001
+		}
+		else
+			PreheaterStatus = "end"
+
+		if (model.rotation.z > 0 && PreheaterStatus == "end")
+			model.rotation.z -= 0.001
+		else
+			PreheaterStatus = "start"
+	}
+	AnimateModelPreheater();
+}, undefined, function (error)
+{
+	console.error(error);
+});
+
 //#endregion
 
 //#region Platform group
