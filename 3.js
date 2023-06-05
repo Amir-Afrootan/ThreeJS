@@ -12,7 +12,7 @@ import * as CANNON from 'cannon-es';
 
 
 let camera, scene, renderer, controls;
-
+const clock = new THREE.Clock();
 const objects = [];
 
 let raycaster;
@@ -40,113 +40,37 @@ function init()
 	document.body.appendChild(renderer.domElement);
 
 	camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-	camera.position.y = 10;
+	camera.position.set(10, 10, 10);
+	camera.lookAt(0, 0, 0)
 
 	scene = new THREE.Scene();
 	scene.background = new THREE.Color(0xffffff);
 	scene.fog = new THREE.Fog(0xffffff, 0, 750);
 
-	const axesHelper = new THREE.AxesHelper(5000);
+	const axesHelper = new THREE.AxesHelper(100);
 	scene.add(axesHelper);
-	const gridHelper = new THREE.GridHelper(1000, 1000, 0xffffff, 0x986987);
+	const gridHelper = new THREE.GridHelper(100, 10, 0xffffff, 0x986987);
 	scene.add(gridHelper);
 
 	const light = new THREE.HemisphereLight(0xeeeeff, 0x777788, 0.75);
 	light.position.set(0.5, 1, 0.75);
 	scene.add(light);
 
-	controls = new PointerLockControls(camera, document.body);
-	controls.lock();
+	controls = new FirstPersonControls(camera, document.body);
+	controls.movementSpeed = 4;
+	controls.lookSpeed = 0.1;
 
-	// const blocker = document.getElementById('blocker');
-	// const instructions = document.getElementById('instructions');
 
-	// instructions.addEventListener('click', function ()
-	// {
-	// 	controls.lock();
-	// });
 
-	// controls.addEventListener('lock', function ()
-	// {
-	// 	instructions.style.display = 'none';
-	// 	blocker.style.display = 'none';
-	// });
 
-	// controls.addEventListener('unlock', function ()
-	// {
-	// 	blocker.style.display = 'block';
-	// 	instructions.style.display = '';
-	// });
+	//#region Code here
 
-	scene.add(controls.getObject());
-	const onKeyDown = function (event)
-	{
-		switch (event.code)
-		{
+	//#endregion
 
-			case 'ArrowUp':
-			case 'KeyW':
-				moveForward = true;
-				break;
 
-			case 'ArrowLeft':
-			case 'KeyA':
-				moveLeft = true;
-				break;
 
-			case 'ArrowDown':
-			case 'KeyS':
-				moveBackward = true;
-				break;
 
-			case 'ArrowRight':
-			case 'KeyD':
-				moveRight = true;
-				break;
 
-			case 'Space':
-				if (canJump === true) velocity.y += 400;
-				canJump = false;
-				break;
-
-		}
-
-	};
-
-	const onKeyUp = function (event)
-	{
-
-		switch (event.code)
-		{
-
-			case 'ArrowUp':
-			case 'KeyW':
-				moveForward = false;
-				break;
-
-			case 'ArrowLeft':
-			case 'KeyA':
-				moveLeft = false;
-				break;
-
-			case 'ArrowDown':
-			case 'KeyS':
-				moveBackward = false;
-				break;
-
-			case 'ArrowRight':
-			case 'KeyD':
-				moveRight = false;
-				break;
-
-		}
-
-	};
-
-	document.addEventListener('keydown', onKeyDown);
-	document.addEventListener('keyup', onKeyUp);
-
-	raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, - 1, 0), 0, 10);
 	window.addEventListener('resize', onWindowResize);
 }
 
@@ -160,44 +84,6 @@ function onWindowResize()
 function animate()
 {
 	requestAnimationFrame(animate);
-
-	const time = performance.now();
-
-	if (controls.isLocked === true)
-	{
-		// raycaster.ray.origin.copy(controls.getObject().position);
-		// raycaster.ray.origin.y -= 10;
-
-		const delta = (time - prevTime) / 1000;
-
-		velocity.x -= velocity.x * 10.0 * delta;
-		velocity.z -= velocity.z * 10.0 * delta;
-
-		velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
-
-		direction.z = Number(moveForward) - Number(moveBackward);
-		direction.x = Number(moveRight) - Number(moveLeft);
-		direction.normalize(); // this ensures consistent movements in all directions
-
-		if (moveForward || moveBackward) velocity.z -= direction.z * 400.0 * delta;
-		if (moveLeft || moveRight) velocity.x -= direction.x * 400.0 * delta;
-
-
-		controls.moveRight(- velocity.x * delta);
-		controls.moveForward(- velocity.z * delta);
-
-		controls.getObject().position.y += (velocity.y * delta); // new behavior
-
-		if (controls.getObject().position.y < 10)
-		{
-			velocity.y = 0;
-			controls.getObject().position.y = 10;
-			canJump = true;
-		}
-	}
-
-	prevTime = time;
-
+	controls.update(clock.getDelta());
 	renderer.render(scene, camera);
-
 }

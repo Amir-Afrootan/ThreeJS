@@ -70,11 +70,11 @@ function AnimateGravity()
 	plane.position.copy(PlaneBody.position)
 	plane.quaternion.copy(PlaneBody.quaternion)
 
-	glassMesh.position.copy(GlassBody.position)
-	glassMesh.quaternion.copy(GlassBody.quaternion)
+	CylinderB.position.copy(CylinderB_Body.position)
+	CylinderB.quaternion.copy(CylinderB_Body.quaternion)
 
-	waterMesh.position.copy(waterBody.position)
-	waterMesh.quaternion.copy(waterBody.quaternion)
+	CylinderB_Melt.position.copy(CylinderB_MeltBody.position)
+	CylinderB_Melt.quaternion.copy(CylinderB_MeltBody.quaternion)
 
 	renderer.render(scene, camera);
 }
@@ -112,7 +112,7 @@ scene.fog = new THREE.Fog(0xffffff, 0, 300);
 //#region Camera
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 1000);
 camera.position.set(-200, 90, 50); //x, y, z
-camera.lookAt(0, 0, 0);
+camera.lookAt(-200, 40, 0);
 
 // Shadow camera helper
 const MyCameraHelper = new THREE.CameraHelper(camera);
@@ -144,7 +144,7 @@ const controls_labelRenderer = new OrbitControls(camera, labelRenderer.domElemen
 //FirstPersonControls
 const MyFirstPersonControls = new FirstPersonControls(camera, renderer.domElement);
 MyFirstPersonControls.enabled = false
-MyFirstPersonControls.movementSpeed = 150;
+MyFirstPersonControls.movementSpeed = 4;
 MyFirstPersonControls.lookSpeed = 0.1;
 
 const ActiveController = function (event) //// onKeyDown keypress
@@ -154,7 +154,10 @@ const ActiveController = function (event) //// onKeyDown keypress
 	{
 		case 'KeyE':
 			if (!MyFirstPersonControls.enabled)
+			{
 				MyFirstPersonControls.enabled = true
+				console.log(camera.position)
+			}
 			else
 				MyFirstPersonControls.enabled = false
 			break;
@@ -353,44 +356,95 @@ Sphere.receiveShadow = true;
 scene.add(Sphere);
 //#endregion
 
-//#region cylinder Ladel
-const cylindergeometry = new THREE.CylinderGeometry(3, 3, 10, 20);
-const cylinderMaterial1 = new THREE.MeshBasicMaterial({ color: 0xffff00 });		// don't accept shadow.
-const cylinderMaterial2 = new THREE.MeshPhysicalMaterial({ color: 0xffffff });	// accept shadow.
-const cylinderMaterial3 = new THREE.MeshStandardMaterial({						// accept shadow.
+//#region cylinder A Ladel
+const CylinderA_Geo = new THREE.CylinderGeometry(3, 3, 10, 32);
+const CylinderA_Mat = new THREE.MeshStandardMaterial({
 	color: 0xffffFF,
-	metalness: false,
-	roughness: 0,
+	metalness: 0,
+	roughness: 1,
 	transparent: true,
 	opacity: 0.6
 });
-const cylinder = new THREE.Mesh(cylindergeometry, cylinderMaterial3);
-cylinder.position.set(8, 8, 0);
-cylinder.castShadow = true;
-cylinder.receiveShadow = true;
-//scene.add(cylinder);
+const CylinderA = new THREE.Mesh(CylinderA_Geo, CylinderA_Mat);
+CylinderA.position.set(8, 8, 0);
+CylinderA.castShadow = true;
+CylinderA.receiveShadow = true;
 //#endregion
 
-//#region Cylinder Melt
-const cylindergeometry2 = new THREE.CylinderGeometry(2, 2, 1, 20);
-const cylinderMaterial23 = new THREE.MeshStandardMaterial({						// accept shadow.
+//#region Cylinder A Melt Label
+const CylinderA_Melt_Geo = new THREE.CylinderGeometry(2, 2, 10);
+const CylinderA_Melt_Mat = new THREE.MeshStandardMaterial({
 	color: 0xff0000,
-	metalness: false,
-	//roughness: 1,
+	metalness: 0,
+	roughness: 0,
 });
-const cylinder2 = new THREE.Mesh(cylindergeometry2, cylinderMaterial23);
-cylinder2.position.set(0, -4, 0);
-cylinder.add(cylinder2);
+const CylinderA_Melt = new THREE.Mesh(CylinderA_Melt_Geo, CylinderA_Melt_Mat);
 
-const cylinder2Div = document.createElement('div');
-cylinder2Div.className = 'label';
-cylinder2Div.textContent = "1600 C";
+CylinderA.add(CylinderA_Melt);
 
-const cylinder2Label = new CSS2DObject(cylinder2Div);
-cylinder2Label.position.set(1, 0, 0);
-cylinder2Label.center.set(0, 1);
-cylinder2Label.layers.set(0);
-cylinder2.add(cylinder2Label);
+const CylinderA_MeltDiv = document.createElement('div');
+CylinderA_MeltDiv.className = 'Info';
+CylinderA_MeltDiv.innerHTML = "1600 C";
+
+const CylinderA_MeltLabel = new CSS2DObject(CylinderA_MeltDiv);
+CylinderA_MeltLabel.position.set(0, 0, 0);
+CylinderA_MeltLabel.center.set(0, 1);
+CylinderA_Melt.add(CylinderA_MeltLabel);
+
+function CylinderA_MeltAnimation()
+{
+	requestAnimationFrame(CylinderA_MeltAnimation)
+
+	if (CylinderA_Melt.geometry.parameters.height <= 1)
+	{
+		CylinderA_Melt.geometry = new THREE.CylinderGeometry(2, 2, 9);
+		CylinderA_Melt.position.y = 0;
+	}
+
+	if (CylinderA_Melt.geometry.parameters.height <= 10)
+	{
+		let DischargeSpeed = 0.01
+		CylinderA_Melt.geometry = new THREE.CylinderGeometry(2, 2, CylinderA_Melt.geometry.parameters.height - DischargeSpeed);
+		CylinderA_Melt.position.y -= (DischargeSpeed/2);
+	}
+
+	renderer.render(scene, camera); // not any more needed.
+}
+CylinderA_MeltAnimation()
+//#endregion
+
+//#region Cylinder B ladle with melt
+const CylinderB_Geo = new THREE.CylinderGeometry(3, 3, 10, 32, 1);
+const CylinderB_mat = new THREE.MeshStandardMaterial({ color: 0x0000FF, transparent: true, opacity: 0.5 });
+const CylinderB = new THREE.Mesh(CylinderB_Geo, CylinderB_mat);
+CylinderB.castShadow = true;
+CylinderB.receiveShadow = true;
+CylinderB.position.set(-8, 8, 0);
+
+const CylinderB_Body = new CANNON.Body({
+	//mass: 0,
+	type: CANNON.Body.STATIC,
+	shape: new CANNON.Cylinder(3, 3, 10, 32),
+	position: new CANNON.Vec3(-8, 8, 0),
+	material: new CANNON.Material()
+})
+world.addBody(CylinderB_Body);
+
+const CylinderB_MeltGeo = new THREE.CylinderGeometry(2, 2, 4, 32);
+const CylinderB_MeltMat = new THREE.MeshStandardMaterial({ color: 0xFF0000, transparent: false, opacity: 0.8 });
+const CylinderB_Melt = new THREE.Mesh(CylinderB_MeltGeo, CylinderB_MeltMat);
+CylinderB_Melt.position.set(0, 20, 0);
+CylinderB.add(CylinderB_Melt);
+
+const CylinderB_MeltBody = new CANNON.Body({
+	mass: 1,
+	shape: new CANNON.Cylinder(2, 2, 4, 32),
+	position: new CANNON.Vec3(0, 20, 0),
+});
+world.addBody(CylinderB_MeltBody);
+// waterBody.angularVelocity.set(0, 10, 0);
+// waterBody.angularDamping = 0.5;
+
 //#endregion
 
 //#region Cylinder Segment
@@ -426,45 +480,7 @@ PreheaterBody.position.set(-50, 3, 40)
 PlatformGroup.add(PreheaterBody)
 //#endregion
 
-//#region second ladle with melt
-const glassGeometry = new THREE.CylinderGeometry(3, 3, 10, 32);
-const glassMaterial = new THREE.MeshStandardMaterial({ color: 0xFF00FF, transparent: true, opacity: 0.5 });
-const glassMesh = new THREE.Mesh(glassGeometry, glassMaterial);
-glassMesh.castShadow = true;
-glassMesh.receiveShadow = true;
-glassMesh.position.set(-8, 8, 0);
-
-const GlassBody = new CANNON.Body({
-	//mass: 0,
-	type: CANNON.Body.STATIC,
-	shape: new CANNON.Cylinder(3, 3, 10, 32),
-	position: new CANNON.Vec3(-8, 8, 0),
-	material: new CANNON.Material()
-})
-world.addBody(GlassBody);
-
-
-
-
-const waterGeometry = new THREE.CylinderGeometry(2, 2, 4, 32);
-const waterMaterial = new THREE.MeshStandardMaterial({ color: 0x0000ff, transparent: false, opacity: 0.8 });
-const waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
-waterMesh.position.set(0, 10, 0);
-
-const waterBody = new CANNON.Body({
-	mass: 1,
-	shape: new CANNON.Cylinder(1, 1, 2, 32),
-	position: new CANNON.Vec3(0, 10, 0),
-});
-world.addBody(waterBody);
-// waterBody.angularVelocity.set(0, 10, 0);
-// waterBody.angularDamping = 0.5;
-
-glassMesh.add(waterMesh);
-//scene.add(glassMesh);
-//#endregion
-
-//#region ribbon CurveLine
+//#region Curved Strand ribbon Line
 const numPoints = 100;
 const radius = 50;
 const PlaneWidth = (plane.geometry.parameters.width / 2) - 100;
@@ -507,11 +523,37 @@ Strand1.position.set((-Platform.geometry.parameters.width / 2) + 10, 0, 5)
 Strand2.position.set((-Platform.geometry.parameters.width / 2) + 10, 0, -5)
 // Strand1.scale.set(4,4,4);
 // Strand2.scale.set(4,4,4);
-scene.add(Strand1);
-scene.add(Strand2);
+//scene.add(Strand1);
+//scene.add(Strand2);
 
 
+const MyStrand1Geo = new THREE.CylinderGeometry( 45, 45, 5, 32, 1, true, 0, 1); // 1.6
+const MyStrand1Mat = new THREE.MeshStandardMaterial();
+MyStrand1Mat.color = new THREE.Color(0xFF0000)
+MyStrand1Mat.side = THREE.DoubleSide;
+const MyStrand1 = new THREE.Mesh( MyStrand1Geo, MyStrand1Mat );
+const MyStrand2 = new THREE.Mesh( MyStrand1Geo, MyStrand1Mat );
 
+MyStrand1.position.set((-Platform.geometry.parameters.width / 2) + 55, 0, 5)
+MyStrand2.position.set((-Platform.geometry.parameters.width / 2) + 55, 0, -5)
+
+MyStrand1.rotateX(1.58); // fix
+MyStrand2.rotateX(1.58); // fix
+
+MyStrand1.rotateY(4.72);
+MyStrand2.rotateY(4.72);
+
+PlatformGroup.add(MyStrand1)
+PlatformGroup.add(MyStrand2)
+
+function MyStrandAnimation()
+{
+	requestAnimationFrame(MyStrandAnimation)
+	let thetaLength = 0
+	MyStrand1.geometry = new THREE.CylinderGeometry( 45, 45, 5, 32, 1, true, 0, thetaLength + 0.01); // 1.6
+	renderer.update();
+}
+//MyStrandAnimation() // here
 //#endregion
 
 //#region Model Tundish
@@ -598,11 +640,19 @@ scene.add(PlatformGroup);
 
 //#region TurretGroup
 const TurretGroup = new THREE.Group();
-TurretGroup.add(glassMesh);
-TurretGroup.add(cylinder);
+TurretGroup.add(CylinderB);
+TurretGroup.add(CylinderA);
 TurretGroup.position.set(-Platform.geometry.parameters.width / 2, 5, 0);
 TurretGroup.name = "TurretGroup";
 PlatformGroup.add(TurretGroup);
+
+function TurretGroupAnimation()
+{
+	requestAnimationFrame(TurretGroupAnimation);
+	TurretGroup.rotation.y += 0.001;
+	renderer.render(scene, camera);
+}
+TurretGroupAnimation();
 //#endregion
 
 //#region select object by mouse
@@ -736,3 +786,14 @@ document.body.appendChild(contextMenu);
 //#endregion
 
 
+// center
+// camera.position.set(0, 10, 20); //x, y, z
+// camera.lookAt(0, 0, 0);
+
+// Turret Group
+camera.position.set(-180, 70, -20); //x, y, z
+camera.lookAt(-200, 50, 0);
+
+// Platform
+camera.position.set(-166, 49, 52); //x, y, z
+camera.lookAt(-166, 30, 0);
