@@ -144,8 +144,8 @@ const controls_labelRenderer = new OrbitControls(camera, labelRenderer.domElemen
 //FirstPersonControls
 const MyFirstPersonControls = new FirstPersonControls(camera, renderer.domElement);
 MyFirstPersonControls.enabled = false
-MyFirstPersonControls.movementSpeed = 4;
-MyFirstPersonControls.lookSpeed = 0.1;
+MyFirstPersonControls.movementSpeed = 20;
+MyFirstPersonControls.lookSpeed = 0.05;
 
 const ActiveController = function (event) //// onKeyDown keypress
 {
@@ -527,7 +527,7 @@ Strand2.position.set((-Platform.geometry.parameters.width / 2) + 10, 0, -5)
 //scene.add(Strand2);
 
 
-const MyStrand1Geo = new THREE.CylinderGeometry( 45, 45, 5, 32, 1, true, 0, 1); // 1.6
+const MyStrand1Geo = new THREE.CylinderGeometry( 45, 45, 5, 32, 1, true, 0, 0); // 1.6
 const MyStrand1Mat = new THREE.MeshStandardMaterial();
 MyStrand1Mat.color = new THREE.Color(0xFF0000)
 MyStrand1Mat.side = THREE.DoubleSide;
@@ -549,11 +549,23 @@ PlatformGroup.add(MyStrand2)
 function MyStrandAnimation()
 {
 	requestAnimationFrame(MyStrandAnimation)
-	let thetaLength = 0
-	MyStrand1.geometry = new THREE.CylinderGeometry( 45, 45, 5, 32, 1, true, 0, thetaLength + 0.01); // 1.6
-	renderer.update();
+	if (MyStrand1.geometry.parameters.thetaLength <= 1.6)
+	{
+		let thetaLength1 = MyStrand1.geometry.parameters.thetaLength + 0.001
+		MyStrand1.geometry = new THREE.CylinderGeometry( 45, 45, 5, 32, 1, true, 0, thetaLength1); // 1.6
+	}
+	if (MyStrand2.geometry.parameters.thetaLength <= 1.6)
+	{
+		let thetaLength2 = MyStrand2.geometry.parameters.thetaLength + 0.003
+		MyStrand2.geometry = new THREE.CylinderGeometry( 45, 45, 5, 32, 1, true, 0, thetaLength2); // 1.6
+	}
+
+	if (MyStrand2.geometry.parameters.thetaLength >= 1.6)
+	{
+		
+	}
 }
-//MyStrandAnimation() // here
+console.log(MyStrandAnimation())
 //#endregion
 
 //#region Model Tundish
