@@ -527,7 +527,7 @@ Strand2.position.set((-Platform.geometry.parameters.width / 2) + 10, 0, -5)
 //scene.add(Strand2);
 
 
-const MyStrand1Geo = new THREE.CylinderGeometry( 45, 45, 5, 32, 1, true, 0, 0); // 1.6
+const MyStrand1Geo = new THREE.CylinderGeometry( 45, 45, 1, 32, 1, true, 0, 0); // 1.6
 const MyStrand1Mat = new THREE.MeshStandardMaterial();
 MyStrand1Mat.color = new THREE.Color(0xFF0000)
 MyStrand1Mat.side = THREE.DoubleSide;
@@ -537,8 +537,8 @@ const MyStrand2 = new THREE.Mesh( MyStrand1Geo, MyStrand1Mat );
 MyStrand1.position.set((-Platform.geometry.parameters.width / 2) + 55, 0, 5)
 MyStrand2.position.set((-Platform.geometry.parameters.width / 2) + 55, 0, -5)
 
-MyStrand1.rotateX(1.58); // fix
-MyStrand2.rotateX(1.58); // fix
+MyStrand1.rotateX(Math.PI / 2); // fix
+MyStrand2.rotateX(Math.PI / 2); // fix
 
 MyStrand1.rotateY(4.72);
 MyStrand2.rotateY(4.72);
@@ -556,16 +556,29 @@ function MyStrandAnimation()
 	}
 	if (MyStrand2.geometry.parameters.thetaLength <= 1.6)
 	{
-		let thetaLength2 = MyStrand2.geometry.parameters.thetaLength + 0.003
-		MyStrand2.geometry = new THREE.CylinderGeometry( 45, 45, 5, 32, 1, true, 0, thetaLength2); // 1.6
-	}
-
-	if (MyStrand2.geometry.parameters.thetaLength >= 1.6)
-	{
-		
+		let thetaLength2 = MyStrand2.geometry.parameters.thetaLength + 0.01
+		MyStrand2.geometry = new THREE.CylinderGeometry(45, 45, 5, 32, 1, true, 0, thetaLength2); // 1.6
 	}
 }
 console.log(MyStrandAnimation())
+
+if (MyStrand2.geometry.parameters.thetaLength >= 1.6)
+{
+	//TODO
+}
+
+const MyStrand2BoxGeo = new THREE.BoxGeometry(30, 1, 5)
+const MyStrand2BoxMat = new THREE.MeshStandardMaterial()
+MyStrand2BoxMat.color = new THREE.Color(0xFF0000)
+MyStrand2BoxMat.metalness = 0
+MyStrand2BoxMat.roughness = 1
+const MyStrand2Box = new THREE.Mesh(MyStrand2BoxGeo, MyStrand2BoxMat)
+MyStrand2Box.name = "MyStrand2Box"
+MyStrand2Box.position.set(-130, 5, -5)
+scene.add(MyStrand2Box)
+
+scene.children
+
 //#endregion
 
 //#region Model Tundish
@@ -809,3 +822,7 @@ camera.lookAt(-200, 50, 0);
 // Platform
 camera.position.set(-166, 49, 52); //x, y, z
 camera.lookAt(-166, 30, 0);
+
+// Strands front
+camera.position.set(-86, 22, 0); //x, y, z
+camera.lookAt(-200, 0, 0);
