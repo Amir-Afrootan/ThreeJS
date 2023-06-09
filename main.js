@@ -55,6 +55,7 @@ window.addEventListener('mousemove', function (e)
 //#region Global Variable
 const clock = new THREE.Clock();
 const PlatformGroup = new THREE.Group();
+const CutMachineAGroup = new THREE.Group();
 //#endregion
 
 //#region Add Gravity, Collision, And Other Physics Laws To Your 3D Web App
@@ -356,6 +357,23 @@ Sphere.receiveShadow = true;
 scene.add(Sphere);
 //#endregion
 
+//#region Model Ladle and Turret
+const TurretLoader = new GLTFLoader();
+let ModelTurret;
+TurretLoader.load('Models/Turret2/Turret.gltf', function (gltf)
+{
+	const model = gltf.scene;
+	model.scale.set(100, 100, 100); // resize the model
+	ModelTurret = model;
+	TurretGroup.add(model);
+	//scene.add(model);
+
+}, undefined, function (error)
+{
+	console.error(error);
+});
+//#endregion
+
 //#region cylinder A Ladel
 const CylinderA_Geo = new THREE.CylinderGeometry(3, 3, 10, 32);
 const CylinderA_Mat = new THREE.MeshStandardMaterial({
@@ -447,140 +465,6 @@ world.addBody(CylinderB_MeltBody);
 
 //#endregion
 
-//#region Cylinder Segment
-const SegmentGeo = new THREE.CylinderGeometry(1, 1, 8, 32, 1, false)
-const SegmentMat = new THREE.MeshStandardMaterial({ map: new THREE.TextureLoader().load('Textures/rusty_metal_diff_1k.png'), side: THREE.DoubleSide })
-let Segment1 = new THREE.Mesh(SegmentGeo, SegmentMat)
-let Segment2 = new THREE.Mesh(SegmentGeo, SegmentMat)
-Segment1.position.set(-(plane.geometry.parameters.width / 2) + 9, 40, 5);
-Segment1.rotation.x = 1.6;
-
-Segment2.position.set(-(plane.geometry.parameters.width / 2) + 9, 40, -5);
-Segment2.rotation.x = 1.6;
-
-scene.add(Segment1)
-scene.add(Segment2)
-
-function AnimateRotateSegment()
-{
-	requestAnimationFrame(AnimateRotateSegment);
-	Segment1.rotation.y -= 0.01;
-	Segment2.rotation.y -= 0.01;
-	renderer.render(scene, camera);
-}
-AnimateRotateSegment();
-//#endregion
-
-//#region Preheater Body
-const PreheaterBodyGeo = new THREE.CylinderGeometry(2, 2, 6, 32)
-const PreheaterBodyMat = new THREE.MeshStandardMaterial();
-PreheaterBodyMat.color = new THREE.Color(0xffffff)
-const PreheaterBody = new THREE.Mesh(PreheaterBodyGeo, PreheaterBodyMat)
-PreheaterBody.position.set(-50, 3, 40)
-PlatformGroup.add(PreheaterBody)
-//#endregion
-
-//#region Curved Strand ribbon Line
-const numPoints = 100;
-const radius = 50;
-const PlaneWidth = (plane.geometry.parameters.width / 2) - 100;
-const PlaneHeight = (plane.geometry.parameters.height / 2);
-var Points = [];
-for (var i = 0; i < numPoints; i++)
-{
-	var angle = i / numPoints * Math.PI * 2;
-	//console.log(angle);
-	if (angle >= 3.1 && angle <= 4.5)
-	{
-		var x = Math.cos(angle) * radius;
-		var y = Math.sin(angle) * radius;
-		Points.push(new THREE.Vector3(x - PlaneWidth, y + 50, 0));
-	}
-}
-//console.log(Points);
-const LPI = Points.length - 1//Last Point Index
-Points.push(new THREE.Vector3(Points[LPI].x + 30, Points[LPI].y, 0));
-
-const Paths = new THREE.CatmullRomCurve3(Points);
-
-/*
- [
-	new THREE.Vector3(-xpoint, 40, 0),
-	new THREE.Vector3(-xpoint, 30, 0),
-	new THREE.Vector3(-xpoint + 2, 30, 0),
-	new THREE.Vector3(-xpoint + 5, 25, 0),
-	new THREE.Vector3(-xpoint + 12, 22, 0),
-	new THREE.Vector3(-xpoint + 25, 20, 0),
-	new THREE.Vector3(-xpoint + 25, 20, 0),
-]
-*/
-
-const TubeGeo = new THREE.TubeGeometry(Paths, 10, 2, 2, false);
-const TubeMat = new THREE.MeshStandardMaterial({ color: 0xff0000, opacity: 1, wireframe: false, transparent: false, roughness: 1, metalness:0 });
-const Strand1 = new THREE.Mesh(TubeGeo, TubeMat);
-const Strand2 = new THREE.Mesh(TubeGeo, TubeMat);
-Strand1.position.set((-Platform.geometry.parameters.width / 2) + 10, 0, 5)
-Strand2.position.set((-Platform.geometry.parameters.width / 2) + 10, 0, -5)
-// Strand1.scale.set(4,4,4);
-// Strand2.scale.set(4,4,4);
-//scene.add(Strand1);
-//scene.add(Strand2);
-
-
-const MyStrand1Geo = new THREE.CylinderGeometry( 45, 45, 1, 32, 1, true, 0, 0); // 1.6
-const MyStrand1Mat = new THREE.MeshStandardMaterial();
-MyStrand1Mat.color = new THREE.Color(0xFF0000)
-MyStrand1Mat.side = THREE.DoubleSide;
-const MyStrand1 = new THREE.Mesh( MyStrand1Geo, MyStrand1Mat );
-const MyStrand2 = new THREE.Mesh( MyStrand1Geo, MyStrand1Mat );
-
-MyStrand1.position.set((-Platform.geometry.parameters.width / 2) + 55, 0, 5)
-MyStrand2.position.set((-Platform.geometry.parameters.width / 2) + 55, 0, -5)
-
-MyStrand1.rotateX(Math.PI / 2); // fix
-MyStrand2.rotateX(Math.PI / 2); // fix
-
-MyStrand1.rotateY(4.72);
-MyStrand2.rotateY(4.72);
-
-PlatformGroup.add(MyStrand1)
-PlatformGroup.add(MyStrand2)
-
-function MyStrandAnimation()
-{
-	requestAnimationFrame(MyStrandAnimation)
-	if (MyStrand1.geometry.parameters.thetaLength <= 1.6)
-	{
-		let thetaLength1 = MyStrand1.geometry.parameters.thetaLength + 0.001
-		MyStrand1.geometry = new THREE.CylinderGeometry( 45, 45, 5, 32, 1, true, 0, thetaLength1); // 1.6
-	}
-	if (MyStrand2.geometry.parameters.thetaLength <= 1.6)
-	{
-		let thetaLength2 = MyStrand2.geometry.parameters.thetaLength + 0.01
-		MyStrand2.geometry = new THREE.CylinderGeometry(45, 45, 5, 32, 1, true, 0, thetaLength2); // 1.6
-	}
-}
-console.log(MyStrandAnimation())
-
-if (MyStrand2.geometry.parameters.thetaLength >= 1.6)
-{
-	//TODO
-}
-
-const MyStrand2BoxGeo = new THREE.BoxGeometry(30, 1, 5)
-const MyStrand2BoxMat = new THREE.MeshStandardMaterial()
-MyStrand2BoxMat.color = new THREE.Color(0xFF0000)
-MyStrand2BoxMat.metalness = 0
-MyStrand2BoxMat.roughness = 1
-const MyStrand2Box = new THREE.Mesh(MyStrand2BoxGeo, MyStrand2BoxMat)
-MyStrand2Box.name = "MyStrand2Box"
-MyStrand2Box.position.set(-130, 5, -5)
-scene.add(MyStrand2Box)
-
-scene.children
-
-//#endregion
-
 //#region Model Tundish
 //https://www.vectary.com/
 const TundishLoader = new GLTFLoader();
@@ -588,7 +472,7 @@ let ModelTundish;
 TundishLoader.load('Models/Tundish/Tundish.gltf', function (gltf)
 {
 	const model = gltf.scene;
-	model.scale.set(50, 40, 40); // resize the model
+	model.scale.set(100, 40, 40); // resize the model
 	model.rotation.y = 1.6;
 	model.position.set(-40, 1, 0);
 	ModelTundish = model;
@@ -600,23 +484,6 @@ TundishLoader.load('Models/Tundish/Tundish.gltf', function (gltf)
 });
 if (ModelTundish)
 	ModelTundish.position.set(-40, 1, 20);
-//#endregion
-
-//#region Model Ladle and Turret
-const TurretLoader = new GLTFLoader();
-let ModelTurret;
-TurretLoader.load('Models/Turret2/Turret.gltf', function (gltf)
-{
-	const model = gltf.scene;
-	model.scale.set(100, 100, 100); // resize the model
-	ModelTurret = model;
-	TurretGroup.add(model);
-	//scene.add(model);
-
-}, undefined, function (error)
-{
-	console.error(error);
-});
 //#endregion
 
 //#region Model Preheater
@@ -655,6 +522,220 @@ PreheaterLoader.load('Models/Preheater/Preheater.gltf', function (gltf)
 
 //#endregion
 
+//#region model Preheater Body
+const PreheaterBodyGeo = new THREE.CylinderGeometry(2, 2, 6, 32)
+const PreheaterBodyMat = new THREE.MeshStandardMaterial();
+PreheaterBodyMat.color = new THREE.Color(0xffffff)
+const PreheaterBody = new THREE.Mesh(PreheaterBodyGeo, PreheaterBodyMat)
+PreheaterBody.position.set(-50, 3, 40)
+PlatformGroup.add(PreheaterBody)
+//#endregion
+
+//#region model copper mold
+const CopperGeo = new THREE.BoxGeometry(1, 3, 5)
+const CopperMat = new THREE.MeshStandardMaterial()
+CopperMat.color = new THREE.Color(0xCCCCCC)
+CopperMat.roughness = 0
+CopperMat.metalness = 1
+CopperMat.transparent = true
+CopperMat.opacity = 0.5
+const Copper1 = new THREE.Mesh(CopperGeo, CopperMat);
+const Copper2 = new THREE.Mesh(CopperGeo, CopperMat);
+Copper1.position.set(-40,-2,10)
+Copper2.position.set(-40,-2,-10)
+PlatformGroup.add(Copper1,Copper2)
+//#endregion
+
+//#region Curved Strand ribbon Line
+// const numPoints = 100;
+// const radius = 50;
+// const PlaneWidth = (plane.geometry.parameters.width / 2) - 100;
+// const PlaneHeight = (plane.geometry.parameters.height / 2);
+// var Points = [];
+// for (var i = 0; i < numPoints; i++)
+// {
+// 	var angle = i / numPoints * Math.PI * 2;
+// 	//console.log(angle);
+// 	if (angle >= 3.1 && angle <= 4.5)
+// 	{
+// 		var x = Math.cos(angle) * radius;
+// 		var y = Math.sin(angle) * radius;
+// 		Points.push(new THREE.Vector3(x - PlaneWidth, y + 50, 0));
+// 	}
+// }
+
+// const LPI = Points.length - 1//Last Point Index
+// Points.push(new THREE.Vector3(Points[LPI].x + 30, Points[LPI].y, 0));
+// const Paths = new THREE.CatmullRomCurve3(Points);
+
+/*
+ [
+	new THREE.Vector3(-xpoint, 40, 0),
+	new THREE.Vector3(-xpoint, 30, 0),
+	new THREE.Vector3(-xpoint + 2, 30, 0),
+	new THREE.Vector3(-xpoint + 5, 25, 0),
+	new THREE.Vector3(-xpoint + 12, 22, 0),
+	new THREE.Vector3(-xpoint + 25, 20, 0),
+	new THREE.Vector3(-xpoint + 25, 20, 0),
+]
+*/
+
+// const TubeGeo = new THREE.TubeGeometry(Paths, 10, 2, 2, false);
+// const TubeMat = new THREE.MeshStandardMaterial({ color: 0xff0000, opacity: 1, wireframe: false, transparent: false, roughness: 1, metalness:0 });
+// const Strand1 = new THREE.Mesh(TubeGeo, TubeMat);
+// const Strand2 = new THREE.Mesh(TubeGeo, TubeMat);
+// Strand1.position.set((-Platform.geometry.parameters.width / 2) + 10, 0, 5)
+// Strand2.position.set((-Platform.geometry.parameters.width / 2) + 10, 0, -5)
+// Strand1.scale.set(4,4,4);
+// Strand2.scale.set(4,4,4);
+//scene.add(Strand1);
+//scene.add(Strand2);
+
+
+const MyStrand1Geo = new THREE.CylinderGeometry( 45, 45, 1, 32, 1, true, 0, 0); // 1.6
+const MyStrand1Mat = new THREE.MeshStandardMaterial();
+MyStrand1Mat.color = new THREE.Color(0xFF0000)
+MyStrand1Mat.side = THREE.DoubleSide;
+const MyStrand1 = new THREE.Mesh( MyStrand1Geo, MyStrand1Mat );
+const MyStrand2 = new THREE.Mesh( MyStrand1Geo, MyStrand1Mat );
+
+MyStrand1.position.set((-Platform.geometry.parameters.width / 2) + 55, 0, 10)
+MyStrand2.position.set((-Platform.geometry.parameters.width / 2) + 55, 0, -10)
+
+MyStrand1.rotateX(Math.PI / 2); // fix
+MyStrand2.rotateX(Math.PI / 2); // fix
+
+MyStrand1.rotateY(4.74);
+MyStrand2.rotateY(4.74);
+
+PlatformGroup.add(MyStrand1)
+PlatformGroup.add(MyStrand2)
+
+function MyStrandAnimation()
+{
+	requestAnimationFrame(MyStrandAnimation)
+	if (MyStrand1.geometry.parameters.thetaLength <= 1.6)
+	{
+		let thetaLength1 = MyStrand1.geometry.parameters.thetaLength + 0.1
+		MyStrand1.geometry = new THREE.CylinderGeometry( 45, 45, 5, 32, 1, true, 0, thetaLength1); // 1.6
+	}
+	if (MyStrand2.geometry.parameters.thetaLength <= 1.6)
+	{
+		let thetaLength2 = MyStrand2.geometry.parameters.thetaLength + 0.01
+		MyStrand2.geometry = new THREE.CylinderGeometry(45, 45, 5, 32, 1, true, 0, thetaLength2); // 1.6
+	}
+	if ((MyStrand1.geometry.parameters.thetaLength >= 1.6) && scene.getObjectByName("MyStrand1Box") === undefined)
+	{
+		const MyStrand1BoxGeo = new THREE.BoxGeometry(40, 1, 5)
+		const MyStrand1BoxMat = new THREE.MeshStandardMaterial()
+		MyStrand1BoxMat.color = new THREE.Color(0xFF0000)
+		MyStrand1BoxMat.metalness = 0
+		MyStrand1BoxMat.roughness = 1
+		const MyStrand1Box = new THREE.Mesh(MyStrand1BoxGeo, MyStrand1BoxMat)
+		MyStrand1Box.name = "MyStrand1Box"
+		MyStrand1Box.position.set(-124, 5, 10)
+		scene.add(MyStrand1Box)
+	}
+	if ((MyStrand2.geometry.parameters.thetaLength >= 1.6) && scene.getObjectByName("MyStrand2Box") === undefined)
+	{
+		const MyStrand2BoxGeo = new THREE.BoxGeometry(40, 1, 5)
+		const MyStrand2BoxMat = new THREE.MeshStandardMaterial()
+		MyStrand2BoxMat.color = new THREE.Color(0xFF0000)
+		MyStrand2BoxMat.metalness = 0
+		MyStrand2BoxMat.roughness = 1
+		const MyStrand2Box = new THREE.Mesh(MyStrand2BoxGeo, MyStrand2BoxMat)
+		MyStrand2Box.name = "MyStrand2Box"
+		MyStrand2Box.position.set(-124, 5, -10)
+		scene.add(MyStrand2Box)
+	}
+}
+MyStrandAnimation()
+
+//#endregion
+
+//#region Segment
+const SegmentGeo = new THREE.CylinderGeometry(1, 1, 8, 32, 1, false)
+const SegmentMat = new THREE.MeshStandardMaterial({ map: new THREE.TextureLoader().load('Textures/rusty_metal_diff_1k.png'), side: THREE.DoubleSide })
+let Segment1 = new THREE.Mesh(SegmentGeo, SegmentMat)
+let Segment2 = new THREE.Mesh(SegmentGeo, SegmentMat)
+Segment1.position.set(-(plane.geometry.parameters.width / 2) + 9, 40, 10);
+Segment1.rotation.x = Math.PI/2;
+
+Segment2.position.set(-(plane.geometry.parameters.width / 2) + 9, 40, -10);
+Segment2.rotation.x = Math.PI/2;
+
+scene.add(Segment1)
+scene.add(Segment2)
+
+function AnimateRotateSegment()
+{
+	requestAnimationFrame(AnimateRotateSegment);
+	Segment1.rotation.y -= 0.01;
+	Segment2.rotation.y -= 0.01;
+	renderer.render(scene, camera);
+}
+AnimateRotateSegment();
+//#endregion
+
+//#region model Cut Machine
+const CutMachineALoader = new GLTFLoader();
+CutMachineALoader.load('Models/CutMachine/CutMachine.gltf', function (gltf)
+{
+	const model = gltf.scene;
+	model.scale.set(150, 150, 100); // resize the model
+	CutMachineAGroup.add(model);
+}, undefined, function (error)
+{
+	console.error(error);
+});
+//#endregion
+
+//#region Cut Machine And Torch And Flame
+//Torch A
+const CMATorchAGeo = new THREE.CylinderGeometry(0.2, 0.2, 2, 32)
+const CMATorchAMat = new THREE.MeshStandardMaterial()
+CMATorchAMat.color = new THREE.Color(0xAAAAAA)
+const CMATorchA = new THREE.Mesh(CMATorchAGeo, CMATorchAMat)
+const CMATorchB = new THREE.Mesh(CMATorchAGeo, CMATorchAMat)
+CMATorchA.position.set(0, 4, 3)
+CMATorchB.position.set(0, 4, -3)
+CutMachineAGroup.add(CMATorchA, CMATorchB)
+
+//Flame A
+const CMATorchAFlameGeo = new THREE.CylinderGeometry(0.1, 0.1, 0)
+const CMATorchAFlameMat = new THREE.MeshStandardMaterial()
+CMATorchAFlameMat.color = new THREE.Color(0xFF0000)
+const CMATorchAFlame = new THREE.Mesh(CMATorchAFlameGeo, CMATorchAFlameMat)
+CMATorchAFlame.position.set(0, -1.5, 0)
+CMATorchA.add(CMATorchAFlame)
+
+//Flame B
+const CMATorchBFlameGeo = new THREE.SphereGeometry(1, 5, 2, 0, 6.28, 0, 5.7)
+const CMATorchBFlameMat = new THREE.MeshStandardMaterial()
+CMATorchBFlameMat.color = new THREE.Color(0xFF0000)
+const CMATorchBFlame = new THREE.Mesh(CMATorchBFlameGeo, CMATorchBFlameMat)
+CMATorchBFlame.position.set(0, -1.6, 0)
+CMATorchBFlame.rotateX(Math.PI)
+CMATorchB.add(CMATorchBFlame)
+
+function CMATorchAFlameAnimation()
+{
+	requestAnimationFrame(CMATorchAFlameAnimation)
+	let radiusTop = CMATorchAFlame.geometry.parameters.radiusTop + 0
+	let radiusBottom = CMATorchAFlame.geometry.parameters.radiusBottom * Math.random() + 0.1
+	let height = Math.random() + 1
+	CMATorchAFlame.geometry = new THREE.CylinderGeometry(radiusTop, radiusBottom, height);
+
+	if (CMATorchAFlame.geometry.parameters.height > 3)
+		CMATorchAFlame.geometry = new THREE.CylinderGeometry(0.1, 0.1, 0);
+
+	height = Math.abs(Math.random()) + 0.5
+	//CMATorchBFlame.geometry = new THREE.SphereGeometry(height, 5, 2, 0, 6.28, 0, 5.7)
+	CMATorchBFlame.rotateY(0.1)
+}
+CMATorchAFlameAnimation();
+//#endregion
+
 //#region Platform group
 PlatformGroup.add(Platform);
 // PlatformGroup.add(Strand1);
@@ -678,6 +759,14 @@ function TurretGroupAnimation()
 	renderer.render(scene, camera);
 }
 TurretGroupAnimation();
+//#endregion
+
+//#region Cut Machine Group
+//CutMachineAGroup.add(TorchA);
+//CutMachineAGroup.add(TorchB);
+CutMachineAGroup.position.set(-110, 4, 10);
+CutMachineAGroup.name = "CutMachineAGroup";
+scene.add(CutMachineAGroup);
 //#endregion
 
 //#region select object by mouse
@@ -824,5 +913,9 @@ camera.position.set(-166, 49, 52); //x, y, z
 camera.lookAt(-166, 30, 0);
 
 // Strands front
-camera.position.set(-86, 22, 0); //x, y, z
+camera.position.set(-80, 22, 0); //x, y, z
+camera.lookAt(-200, 0, 0);
+
+// Cut machine A front
+camera.position.set(-94, 7, 10); //x, y, z
 camera.lookAt(-200, 0, 0);
