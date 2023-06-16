@@ -52,10 +52,17 @@ window.addEventListener('mousemove', function (e)
 });
 //#endregion
 
-//#region Global Variable
+//#region Global Functions And Variables
 const clock = new THREE.Clock();
 const PlatformGroup = new THREE.Group();
+const TurretGroup = new THREE.Group();
 const CutMachineAGroup = new THREE.Group();
+async function LoadGLTFModel(modelUrl)
+{
+	const loader = new GLTFLoader();
+	const gltf = await loader.loadAsync(modelUrl);
+	return gltf.scene;
+}
 //#endregion
 
 //#region Add Gravity, Collision, And Other Physics Laws To Your 3D Web App
@@ -76,10 +83,8 @@ function AnimateGravity()
 
 	CylinderB_Melt.position.copy(CylinderB_MeltBody.position)
 	CylinderB_Melt.quaternion.copy(CylinderB_MeltBody.quaternion)
-
-	renderer.render(scene, camera);
 }
-renderer.setAnimationLoop(AnimateGravity);
+//renderer.setAnimationLoop(AnimateGravity);
 //#endregion
 
 //#region scene
@@ -173,16 +178,6 @@ const ActiveController = function (event) //// onKeyDown keypress
 	}
 };
 document.addEventListener('keypress', ActiveController);// keyup, keypress, keydown
-
-function AnimateCamera()
-{
-	requestAnimationFrame(AnimateCamera);
-	//MyOrbitControls.update(); // controls.autoRotate disable if we comment this line.
-	MyFirstPersonControls.update(clock.getDelta());
-	renderer.render(scene, camera); // not any more needed.
-	labelRenderer.render(scene, camera);
-}
-AnimateCamera();
 //#endregion
 
 //#region Light
@@ -210,7 +205,7 @@ scene.add(MyDirectionalLight);
 
 //Direction Light helper
 const MyDirectionalLightHelper = new THREE.DirectionalLightHelper(MyDirectionalLight);
-scene.add(MyDirectionalLightHelper);
+//scene.add(MyDirectionalLightHelper);
 
 // SpotLight
 const spotLight = new THREE.SpotLight(0xffffff, 1);
@@ -221,7 +216,7 @@ spotLight.angle = 0.1;
 
 // SpotLight Helper
 const spotLightHelper = new THREE.SpotLightHelper(spotLight)
-scene.add(spotLightHelper);
+//scene.add(spotLightHelper);
 
 //#endregion
 
@@ -261,12 +256,12 @@ Platform.rotation.x = -Math.PI / 2;
 //#region Cube
 const CubeGeo = new THREE.BoxGeometry(10, 10, 10);
 const CubeMat = new THREE.MeshStandardMaterial(); // enable Shdow
-const color2 = new THREE.Color( 0x213911 );
+const color2 = new THREE.Color(0x213911);
 const color3 = new THREE.Color("rgb(125, 36, d5)");
 const color4 = new THREE.Color("rgb(10%, 60%, 20%)");
-const color5 = new THREE.Color( 'skyblue' );
+const color5 = new THREE.Color('skyblue');
 const color6 = new THREE.Color("hsl(0, 100%, 50%)");
-const color7 = new THREE.Color( 1, 0, 0 );
+const color7 = new THREE.Color(1, 0, 0);
 CubeMat.color = color3
 CubeMat.roughness = 0;
 CubeMat.metalness = 0;
@@ -277,7 +272,7 @@ cube.position.y = 0;
 cube.position.set(1, 10, 1);
 cube.castShadow = true;
 cube.receiveShadow = true;
-scene.add(cube);
+//scene.add(cube);
 
 // const CubeDiv = document.createElement('div');
 // CubeDiv.className = 'label';
@@ -291,12 +286,10 @@ scene.add(cube);
 
 function AnimateCube()
 {
-	requestAnimationFrame(AnimateCube);
 	cube.rotation.x += 0.01;
 	cube.rotation.y += 0.01;
-	renderer.render(scene, camera);
 }
-AnimateCube();
+
 
 //#endregion
 
@@ -315,8 +308,8 @@ const boxGeometry = new THREE.BoxGeometry(5, 5, 5);
 const box = new THREE.Mesh(boxGeometry, MultiBoxmaterial);//Boxmaterial
 
 box.position.set(-10, 10, -10);
-scene.add(box);
-cube.add(box);
+//scene.add(box);
+//cube.add(box);
 //#endregion
 
 //#region Line
@@ -326,17 +319,7 @@ points.push(new THREE.Vector3(0, 4, 0));
 points.push(new THREE.Vector3(4, 0, 0));
 const geometryLine = new THREE.BufferGeometry().setFromPoints(points);
 const line = new THREE.Line(geometryLine, CubeMat);
-scene.add(line);
-renderer.render(scene, camera);
-
-function AnimateLine()
-{
-	requestAnimationFrame(AnimateLine);
-	line.rotation.x += 0.01;
-	line.rotation.y += 0.01;
-	renderer.render(scene, camera);
-}
-AnimateLine();
+//scene.add(line);
 //#endregion
 
 //#region sphere
@@ -345,8 +328,8 @@ const SphereTextureLoader = new THREE.TextureLoader().load('Textures/bark_willow
 const SphereMaterial = new THREE.MeshStandardMaterial({//MeshLambertMaterial
 	//color: 0x216971,
 	wireframe: false,
-	roughness:0,
-	metalness:1,
+	roughness: 0,
+	metalness: 1,
 	//map: SphereTextureLoader,
 	envMap: scene.background,
 });
@@ -354,24 +337,13 @@ const Sphere = new THREE.Mesh(SphereGeometry, SphereMaterial);
 Sphere.position.set(-40, 10, 50);
 Sphere.castShadow = true;
 Sphere.receiveShadow = true;
-scene.add(Sphere);
+//scene.add(Sphere);
 //#endregion
 
 //#region Model Ladle and Turret
-const TurretLoader = new GLTFLoader();
-let ModelTurret;
-TurretLoader.load('Models/Turret2/Turret.gltf', function (gltf)
-{
-	const model = gltf.scene;
-	model.scale.set(100, 100, 100); // resize the model
-	ModelTurret = model;
-	TurretGroup.add(model);
-	//scene.add(model);
-
-}, undefined, function (error)
-{
-	console.error(error);
-});
+const ModelTurret = await LoadGLTFModel('Models/Turret2/Turret.gltf');
+ModelTurret.scale.set(100, 100, 100);
+TurretGroup.add(ModelTurret);
 //#endregion
 
 //#region cylinder A Ladel
@@ -411,8 +383,6 @@ CylinderA_Melt.add(CylinderA_MeltLabel);
 
 function CylinderA_MeltAnimation()
 {
-	requestAnimationFrame(CylinderA_MeltAnimation)
-
 	if (CylinderA_Melt.geometry.parameters.height <= 1)
 	{
 		CylinderA_Melt.geometry = new THREE.CylinderGeometry(2, 2, 9);
@@ -423,12 +393,10 @@ function CylinderA_MeltAnimation()
 	{
 		let DischargeSpeed = 0.01
 		CylinderA_Melt.geometry = new THREE.CylinderGeometry(2, 2, CylinderA_Melt.geometry.parameters.height - DischargeSpeed);
-		CylinderA_Melt.position.y -= (DischargeSpeed/2);
+		CylinderA_Melt.position.y -= (DischargeSpeed / 2);
 	}
-
-	renderer.render(scene, camera); // not any more needed.
 }
-CylinderA_MeltAnimation()
+
 //#endregion
 
 //#region Cylinder B ladle with melt
@@ -487,39 +455,27 @@ if (ModelTundish)
 //#endregion
 
 //#region Model Preheater
-const PreheaterLoader = new GLTFLoader();
-let ModelPreheater;
+const ModelPreheater = await LoadGLTFModel('Models/Preheater/Preheater.gltf');
+ModelPreheater.scale.set(40, 40, 40)
+ModelPreheater.position.set(-50, 5, 40);
+ModelPreheater.rotation.y = 3.15;
+ModelPreheater.rotation.z = 1;
+PlatformGroup.add(ModelPreheater);
 let PreheaterStatus = "start";
-PreheaterLoader.load('Models/Preheater/Preheater.gltf', function (gltf)
+function AnimateModelPreheater(model)
 {
-	const model = gltf.scene;
-	model.scale.set(40, 40, 40);
-	model.position.set(-50, 5, 40);
-	model.rotation.y = 3.15;
-	model.rotation.z = 1;//1.58
-	ModelPreheater = model;
-	PlatformGroup.add(model);
-	function AnimateModelPreheater()
+	if (model.rotation.z <= 1.58 && PreheaterStatus == "start")
 	{
-		requestAnimationFrame(AnimateModelPreheater);
-		if (model.rotation.z <= 1.58 && PreheaterStatus == "start")
-		{
-			model.rotation.z += 0.001
-		}
-		else
-			PreheaterStatus = "end"
-
-		if (model.rotation.z > 0 && PreheaterStatus == "end")
-			model.rotation.z -= 0.001
-		else
-			PreheaterStatus = "start"
+		model.rotation.z += 0.001
 	}
-	AnimateModelPreheater();
-}, undefined, function (error)
-{
-	console.error(error);
-});
+	else
+		PreheaterStatus = "end"
 
+	if (model.rotation.z > 0 && PreheaterStatus == "end")
+		model.rotation.z -= 0.001
+	else
+		PreheaterStatus = "start"
+}
 //#endregion
 
 //#region model Preheater Body
@@ -531,7 +487,7 @@ PreheaterBody.position.set(-50, 3, 40)
 PlatformGroup.add(PreheaterBody)
 //#endregion
 
-//#region model copper mold
+//#region copper mold
 const CopperGeo = new THREE.BoxGeometry(1, 3, 5)
 const CopperMat = new THREE.MeshStandardMaterial()
 CopperMat.color = new THREE.Color(0xCCCCCC)
@@ -541,9 +497,9 @@ CopperMat.transparent = true
 CopperMat.opacity = 0.5
 const Copper1 = new THREE.Mesh(CopperGeo, CopperMat);
 const Copper2 = new THREE.Mesh(CopperGeo, CopperMat);
-Copper1.position.set(-40,-2,10)
-Copper2.position.set(-40,-2,-10)
-PlatformGroup.add(Copper1,Copper2)
+Copper1.position.set(-40, -2, 10)
+Copper2.position.set(-40, -2, -10)
+PlatformGroup.add(Copper1, Copper2)
 //#endregion
 
 //#region Curved Strand ribbon Line
@@ -592,12 +548,12 @@ PlatformGroup.add(Copper1,Copper2)
 //scene.add(Strand2);
 
 
-const MyStrand1Geo = new THREE.CylinderGeometry( 45, 45, 1, 32, 1, true, 0, 0); // 1.6
+const MyStrand1Geo = new THREE.CylinderGeometry(45, 45, 1, 32, 1, true, 0, 0); // 1.6
 const MyStrand1Mat = new THREE.MeshStandardMaterial();
 MyStrand1Mat.color = new THREE.Color(0xFF0000)
 MyStrand1Mat.side = THREE.DoubleSide;
-const MyStrand1 = new THREE.Mesh( MyStrand1Geo, MyStrand1Mat );
-const MyStrand2 = new THREE.Mesh( MyStrand1Geo, MyStrand1Mat );
+const MyStrand1 = new THREE.Mesh(MyStrand1Geo, MyStrand1Mat);
+const MyStrand2 = new THREE.Mesh(MyStrand1Geo, MyStrand1Mat);
 
 MyStrand1.position.set((-Platform.geometry.parameters.width / 2) + 55, 0, 10)
 MyStrand2.position.set((-Platform.geometry.parameters.width / 2) + 55, 0, -10)
@@ -613,11 +569,10 @@ PlatformGroup.add(MyStrand2)
 
 function MyStrandAnimation()
 {
-	requestAnimationFrame(MyStrandAnimation)
 	if (MyStrand1.geometry.parameters.thetaLength <= 1.6)
 	{
 		let thetaLength1 = MyStrand1.geometry.parameters.thetaLength + 0.1
-		MyStrand1.geometry = new THREE.CylinderGeometry( 45, 45, 5, 32, 1, true, 0, thetaLength1); // 1.6
+		MyStrand1.geometry = new THREE.CylinderGeometry(45, 45, 5, 32, 1, true, 0, thetaLength1); // 1.6
 	}
 	if (MyStrand2.geometry.parameters.thetaLength <= 1.6)
 	{
@@ -649,7 +604,7 @@ function MyStrandAnimation()
 		scene.add(MyStrand2Box)
 	}
 }
-MyStrandAnimation()
+
 
 //#endregion
 
@@ -659,22 +614,20 @@ const SegmentMat = new THREE.MeshStandardMaterial({ map: new THREE.TextureLoader
 let Segment1 = new THREE.Mesh(SegmentGeo, SegmentMat)
 let Segment2 = new THREE.Mesh(SegmentGeo, SegmentMat)
 Segment1.position.set(-(plane.geometry.parameters.width / 2) + 9, 40, 10);
-Segment1.rotation.x = Math.PI/2;
+Segment1.rotation.x = Math.PI / 2;
 
 Segment2.position.set(-(plane.geometry.parameters.width / 2) + 9, 40, -10);
-Segment2.rotation.x = Math.PI/2;
+Segment2.rotation.x = Math.PI / 2;
 
 scene.add(Segment1)
 scene.add(Segment2)
 
 function AnimateRotateSegment()
 {
-	requestAnimationFrame(AnimateRotateSegment);
 	Segment1.rotation.y -= 0.01;
 	Segment2.rotation.y -= 0.01;
-	renderer.render(scene, camera);
 }
-AnimateRotateSegment();
+
 //#endregion
 
 //#region model Cut Machine
@@ -701,10 +654,19 @@ CMATorchA.position.set(0, 4, 3)
 CMATorchB.position.set(0, 4, -3)
 CutMachineAGroup.add(CMATorchA, CMATorchB)
 
+function TorchMovement()
+{
+	CMATorchA.position.z += 0.005
+	if (CMATorchA.position.z >= 3)
+		CMATorchA.position.z = 0
+}
+
 //Flame A
 const CMATorchAFlameGeo = new THREE.CylinderGeometry(0.1, 0.1, 0)
 const CMATorchAFlameMat = new THREE.MeshStandardMaterial()
 CMATorchAFlameMat.color = new THREE.Color(0xFF0000)
+CMATorchAFlameMat.transparent = true
+CMATorchAFlameMat.opacity = 0.5
 const CMATorchAFlame = new THREE.Mesh(CMATorchAFlameGeo, CMATorchAFlameMat)
 CMATorchAFlame.position.set(0, -1.5, 0)
 CMATorchA.add(CMATorchAFlame)
@@ -713,6 +675,8 @@ CMATorchA.add(CMATorchAFlame)
 const CMATorchBFlameGeo = new THREE.SphereGeometry(1, 5, 2, 0, 6.28, 0, 5.7)
 const CMATorchBFlameMat = new THREE.MeshStandardMaterial()
 CMATorchBFlameMat.color = new THREE.Color(0xFF0000)
+CMATorchBFlameMat.transparent = true
+CMATorchBFlameMat.opacity = 0.5
 const CMATorchBFlame = new THREE.Mesh(CMATorchBFlameGeo, CMATorchBFlameMat)
 CMATorchBFlame.position.set(0, -1.6, 0)
 CMATorchBFlame.rotateX(Math.PI)
@@ -720,21 +684,105 @@ CMATorchB.add(CMATorchBFlame)
 
 function CMATorchAFlameAnimation()
 {
-	requestAnimationFrame(CMATorchAFlameAnimation)
 	let radiusTop = CMATorchAFlame.geometry.parameters.radiusTop + 0
 	let radiusBottom = CMATorchAFlame.geometry.parameters.radiusBottom * Math.random() + 0.1
 	let height = Math.random() + 1
 	CMATorchAFlame.geometry = new THREE.CylinderGeometry(radiusTop, radiusBottom, height);
-
-	if (CMATorchAFlame.geometry.parameters.height > 3)
-		CMATorchAFlame.geometry = new THREE.CylinderGeometry(0.1, 0.1, 0);
-
-	height = Math.abs(Math.random()) + 0.5
-	//CMATorchBFlame.geometry = new THREE.SphereGeometry(height, 5, 2, 0, 6.28, 0, 5.7)
 	CMATorchBFlame.rotateY(0.1)
 }
-CMATorchAFlameAnimation();
+
 //#endregion
+
+//#region Roller
+const RollerBodyGeo = new THREE.CylinderGeometry(0.5, 0.5, 8)
+const RollerTextureLoader = new THREE.TextureLoader().load('Textures/painted_metal_shutter_ao_1k.png');
+// RollerTextureLoader.rotation = Math.PI / 4;
+// RollerTextureLoader.wrapS = THREE.RepeatWrapping;
+// RollerTextureLoader.wrapT = THREE.RepeatWrapping;
+const RollerBodyMat = new THREE.MeshStandardMaterial({color:0x888888, roughness:0, metalness:0, side: THREE.DoubleSide, map: RollerTextureLoader})
+const RollerBody = new THREE.Mesh(RollerBodyGeo, RollerBodyMat)
+RollerBody.position.set(-120, 2, 10)
+RollerBody.rotateY(-Math.PI / 2)
+RollerBody.rotateZ(Math.PI / 2)
+
+const RollerAGeo = new THREE.CylinderGeometry(1, 1, 0.5)
+const RollerA = new THREE.Mesh(RollerAGeo, RollerBodyMat)
+RollerA.position.y = 4
+
+const RollerB = new THREE.Mesh(RollerAGeo, RollerBodyMat)
+RollerB.position.y = 2
+
+const RollerC = new THREE.Mesh(RollerAGeo, RollerBodyMat)
+RollerC.position.y = -2
+
+const RollerD = new THREE.Mesh(RollerAGeo, RollerBodyMat)
+RollerD.position.y = -4
+
+RollerBody.add(RollerA)
+RollerBody.add(RollerB)
+RollerBody.add(RollerC)
+RollerBody.add(RollerD)
+//scene.add(RollerBody)
+
+function RollerGroupAnimation()
+{
+	RollerBody.rotateY(0.005)
+}
+
+for (let i = 0; i < 10; i++)
+{
+	const RollerST1 = RollerBody.clone();
+	RollerST1.position.x = -110 + (i * 10);
+	scene.add(RollerST1);
+
+	const RollerST2 = RollerBody.clone();
+	RollerST2.position.set(-110 + (i * 10), 2, -10);
+	scene.add(RollerST2);
+
+	const RollerST3 = RollerBody.clone();
+	RollerST3.position.set(-50 + (i * 10), 2, 0);
+	scene.add(RollerST3);
+}
+
+
+
+// const RollerA1 = RollerBody.clone();
+// RollerA1.position.x = -100;
+// const RollerA2 = RollerBody.clone();
+// RollerA1.position.x = -100;
+// const RollerA3 = RollerBody.clone();
+// RollerA1.position.x = -100;
+// const RollerA4 = RollerBody.clone();
+// RollerA1.position.x = -100;
+// const RollerA5 = RollerBody.clone();
+// RollerA1.position.x = -100;
+// const RollerA6 = RollerBody.clone();
+// RollerA1.position.x = -100;
+// scene.add(RollerA1);
+
+
+
+//#endregion
+
+//#region Model Cut Machine Pulpit
+const ModelPulpitCutMachine = await LoadGLTFModel('Models/PulpitCutMachine/PulpitCutMachine.gltf');
+ModelPulpitCutMachine.scale.set(90, 90, 90);
+scene.add(ModelPulpitCutMachine)
+//#endregion
+
+//#region Model Blocker
+const ModelBlocker = await LoadGLTFModel('Models/Blocker/Blocker.gltf');
+ModelBlocker.scale.set(40, 50, 50);
+ModelBlocker.position.set(-15, 0, 10)
+ModelBlocker.rotateY(Math.PI)
+
+const ModelBlocker2 = ModelBlocker.clone()
+ModelBlocker.position.set(-15, 0, -10)
+
+scene.add(ModelBlocker, ModelBlocker2)
+//#endregion
+
+
 
 //#region Platform group
 PlatformGroup.add(Platform);
@@ -745,7 +793,6 @@ scene.add(PlatformGroup);
 //#endregion
 
 //#region TurretGroup
-const TurretGroup = new THREE.Group();
 TurretGroup.add(CylinderB);
 TurretGroup.add(CylinderA);
 TurretGroup.position.set(-Platform.geometry.parameters.width / 2, 5, 0);
@@ -754,11 +801,9 @@ PlatformGroup.add(TurretGroup);
 
 function TurretGroupAnimation()
 {
-	requestAnimationFrame(TurretGroupAnimation);
 	TurretGroup.rotation.y += 0.001;
-	renderer.render(scene, camera);
 }
-TurretGroupAnimation();
+
 //#endregion
 
 //#region Cut Machine Group
@@ -768,6 +813,8 @@ CutMachineAGroup.position.set(-110, 4, 10);
 CutMachineAGroup.name = "CutMachineAGroup";
 scene.add(CutMachineAGroup);
 //#endregion
+
+
 
 //#region select object by mouse
 box.name = "Box";
@@ -828,8 +875,8 @@ function OpenContextMenu(event)
 			//earthLabel.layers.set(10);
 			cube.add(earthLabel);
 
-			
-			
+
+
 		}
 		else if (object.name === 'Box')
 		{
@@ -899,6 +946,28 @@ document.addEventListener('click', event =>
 document.body.appendChild(contextMenu);
 //#endregion
 
+//#region Animate
+function Animate()
+{
+	requestAnimationFrame(Animate);
+	AnimateCube()
+	AnimateGravity()
+	CylinderA_MeltAnimation()
+	TurretGroupAnimation();
+	AnimateModelPreheater(ModelPreheater)
+	AnimateRotateSegment();
+	MyStrandAnimation()
+	TorchMovement()
+	CMATorchAFlameAnimation()
+	RollerGroupAnimation()
+	//MyOrbitControls.update(); // controls.autoRotate disable if we comment this line.
+	MyFirstPersonControls.update(clock.getDelta());
+	renderer.render(scene, camera); // not any more needed.
+	labelRenderer.render(scene, camera);
+}
+Animate();
+//#endregion
+
 
 // center
 // camera.position.set(0, 10, 20); //x, y, z
@@ -919,3 +988,11 @@ camera.lookAt(-200, 0, 0);
 // Cut machine A front
 camera.position.set(-94, 7, 10); //x, y, z
 camera.lookAt(-200, 0, 0);
+
+// Roller
+camera.position.set(-90, 10, 0); //x, y, z
+camera.lookAt(-200, -50, 0);
+
+// Roller
+camera.position.set(0, 10, 0); //x, y, z
+camera.lookAt(-200, -50, 0);

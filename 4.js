@@ -29,6 +29,10 @@ window.addEventListener("resize", function ()
 });
 //#endregion
 
+//#region Global variable
+var clock = new THREE.Clock();
+//#endregion
+
 //#region scene
 const scene = new THREE.Scene();
 const axesHelper = new THREE.AxesHelper(50);
@@ -40,8 +44,8 @@ scene.add(gridHelper);
 
 //#region Camera
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 1000);
-camera.position.set(0, 0, 0); //x, y, z
-//camera.lookAt(0, 0, 0);
+camera.position.set(50, 50, 50); //x, y, z
+camera.lookAt(0, 0, 0);
 //#endregion
 
 //#region Light
@@ -49,134 +53,33 @@ const MyAmbientLight = new THREE.AmbientLight(0xffffff);
 scene.add(MyAmbientLight);
 //#endregion
 
-//#region OrbitControls
-//const controls = new OrbitControls(camera, renderer.domElement);
-const controls = new PointerLockControls(camera, document.body);
-controls.autoRotate = true;
-controls.autoRotateSpeed = 0.5;
-controls.enableDamping = true;
-controls.dampingFactor = 0.1;
-
-
-const onKeyDown = function (event)
-{
-	switch (event.code)
-	{
-		case 'KeyW':
-			controls.autoRotate = false;
-			camera.position.y -= 10;
-			break;
-
-		case 'KeyA':
-			controls.autoRotate = false;
-			camera.position.x += 10;
-			break;
-
-		case 'KeyS':
-			controls.autoRotate = false;
-			camera.position.y += 10;
-			break;
-
-		case 'KeyD':
-			controls.autoRotate = false;
-			camera.position.x -= 10;
-			break;
-
-		case 'KeyQ':
-			controls.autoRotate = false;
-			camera.position.z -= 10;
-			break;
-
-		case 'KeyE':
-			controls.autoRotate = false;
-			camera.position.z += 10;
-			break;
-
-
-
-
-
-		case 'ArrowUp':
-			controls.autoRotate = false;
-			camera.rotation.x -= 0.01;
-			break;
-
-		case 'ArrowLeft':
-			controls.autoRotate = false;
-			camera.rotation.y -= 0.1;
-			break;
-
-		case 'ArrowDown':
-			controls.autoRotate = false;
-			camera.rotation.x += 0.01;
-			break;
-
-		case 'ArrowRight':
-			controls.autoRotate = false;
-			camera.rotation.y += 0.1;
-			break;
-
-		case 'Space':
-			controls.autoRotate = false;
-			camera.lookAt(0, 0, 0);
-			break;
-	}
-};
-
-const onKeyUp = function (event)
-{
-	switch (event.code)
-	{
-		case 'ArrowUp', 'KeyW':
-			controls.autoRotate = true;
-			break;
-
-		case 'ArrowLeft', 'KeyA':
-			controls.autoRotate = true;
-			break;
-
-		case 'ArrowDown', 'KeyS':
-			controls.autoRotate = true;
-			break;
-
-		case 'ArrowRight', 'KeyD':
-			controls.autoRotate = true;
-			break;
-	}
-};
-
-document.addEventListener('keydown', onKeyDown);
-document.addEventListener('keyup', onKeyUp);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//#region Controlers
+const MyFirstPersonControls = new FirstPersonControls(camera, renderer.domElement);
+MyFirstPersonControls.movementSpeed = 20;
+MyFirstPersonControls.lookSpeed = 0.05;
 function AnimateCamera()
 {
 	requestAnimationFrame(AnimateCamera);
-	//controls.update(); // controls.autoRotate disable if we comment this line.
-	renderer.render(scene, camera); // not any more needed.
+	MyFirstPersonControls.update(clock.getDelta());
+	renderer.render(scene, camera);
 }
 AnimateCamera();
 //#endregion
 
-//#region Plane
-const PlaneGeo = new THREE.PlaneGeometry(400, 400)
-const PlaneMat = new THREE.MeshStandardMaterial({ color: 0x125493, side: THREE.DoubleSide, wireframe: true });
-const MyPlane = new THREE.Mesh(PlaneGeo, PlaneMat)
-MyPlane.rotation.x = -Math.PI / 2;
-scene.add(MyPlane);
-//#endregion
+
+// Start Coding in here
+async function loadGLTFModel(modelUrl)
+{
+	const loader = new GLTFLoader();
+	const gltf = await loader.loadAsync(modelUrl);
+	const model = gltf.scene;
+	scene.add(model);
+	return model
+}
+const MyModel1 = await loadGLTFModel('Models/Preheater/Preheater.gltf');
+MyModel1.scale.set(90, 90, 90)
+MyModel1.position.y = 10
+
+const MyModel2 = await loadGLTFModel('Models/PulpitCutMachine/PulpitCutMachine.gltf');
+MyModel2.scale.set(90, 90, 90)
+MyModel2.position.x = 10
