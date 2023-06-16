@@ -63,6 +63,17 @@ async function LoadGLTFModel(modelUrl)
 	const gltf = await loader.loadAsync(modelUrl);
 	return gltf.scene;
 }
+function AddWarning(obj)
+{
+	const WarningDIV = document.createElement('div');
+	WarningDIV.className = 'Info00000';
+	WarningDIV.innerHTML = '<i class="fa-solid fa-triangle-exclamation fa-beat fa-2xl" style="color: #c80000;"></i>';
+	
+	const Label = new CSS2DObject(WarningDIV);
+	Label.position.set(0, 0, 0);
+	Label.center.set(0, 1);
+	obj.add(Label);
+}
 //#endregion
 
 //#region Add Gravity, Collision, And Other Physics Laws To Your 3D Web App
@@ -403,9 +414,10 @@ function CylinderA_MeltAnimation()
 const CylinderB_Geo = new THREE.CylinderGeometry(3, 3, 10, 32, 1);
 const CylinderB_mat = new THREE.MeshStandardMaterial({ color: 0x0000FF, transparent: true, opacity: 0.5 });
 const CylinderB = new THREE.Mesh(CylinderB_Geo, CylinderB_mat);
+CylinderB.position.set(-8, 8, 0);
 CylinderB.castShadow = true;
 CylinderB.receiveShadow = true;
-CylinderB.position.set(-8, 8, 0);
+AddWarning(CylinderB)
 
 const CylinderB_Body = new CANNON.Body({
 	//mass: 0,
@@ -440,8 +452,8 @@ let ModelTundish;
 TundishLoader.load('Models/Tundish/Tundish.gltf', function (gltf)
 {
 	const model = gltf.scene;
-	model.scale.set(100, 40, 40); // resize the model
-	model.rotation.y = 1.6;
+	model.scale.set(50, 40, 40); // resize the model
+	model.rotation.y = Math.PI / 2;
 	model.position.set(-40, 1, 0);
 	ModelTundish = model;
 	PlatformGroup.add(model);
@@ -484,6 +496,7 @@ const PreheaterBodyMat = new THREE.MeshStandardMaterial();
 PreheaterBodyMat.color = new THREE.Color(0xffffff)
 const PreheaterBody = new THREE.Mesh(PreheaterBodyGeo, PreheaterBodyMat)
 PreheaterBody.position.set(-50, 3, 40)
+PreheaterBody.name = "Preheater A Body"
 PlatformGroup.add(PreheaterBody)
 //#endregion
 
@@ -576,36 +589,77 @@ function MyStrandAnimation()
 	}
 	if (MyStrand2.geometry.parameters.thetaLength <= 1.6)
 	{
-		let thetaLength2 = MyStrand2.geometry.parameters.thetaLength + 0.01
+		let thetaLength2 = MyStrand2.geometry.parameters.thetaLength + 0.001
 		MyStrand2.geometry = new THREE.CylinderGeometry(45, 45, 5, 32, 1, true, 0, thetaLength2); // 1.6
 	}
 	if ((MyStrand1.geometry.parameters.thetaLength >= 1.6) && scene.getObjectByName("MyStrand1Box") === undefined)
 	{
-		const MyStrand1BoxGeo = new THREE.BoxGeometry(40, 1, 5)
+		const MyStrand1BoxGeo = new THREE.BoxGeometry(1, 1, 5)
 		const MyStrand1BoxMat = new THREE.MeshStandardMaterial()
 		MyStrand1BoxMat.color = new THREE.Color(0xFF0000)
 		MyStrand1BoxMat.metalness = 0
 		MyStrand1BoxMat.roughness = 1
 		const MyStrand1Box = new THREE.Mesh(MyStrand1BoxGeo, MyStrand1BoxMat)
 		MyStrand1Box.name = "MyStrand1Box"
-		MyStrand1Box.position.set(-124, 5, 10)
+		MyStrand1Box.position.set(-142, 5, 10)
 		scene.add(MyStrand1Box)
 	}
 	if ((MyStrand2.geometry.parameters.thetaLength >= 1.6) && scene.getObjectByName("MyStrand2Box") === undefined)
 	{
-		const MyStrand2BoxGeo = new THREE.BoxGeometry(40, 1, 5)
+		const MyStrand2BoxGeo = new THREE.BoxGeometry(1, 1, 5)
 		const MyStrand2BoxMat = new THREE.MeshStandardMaterial()
 		MyStrand2BoxMat.color = new THREE.Color(0xFF0000)
 		MyStrand2BoxMat.metalness = 0
 		MyStrand2BoxMat.roughness = 1
 		const MyStrand2Box = new THREE.Mesh(MyStrand2BoxGeo, MyStrand2BoxMat)
 		MyStrand2Box.name = "MyStrand2Box"
-		MyStrand2Box.position.set(-124, 5, -10)
+		MyStrand2Box.position.set(-142, 5, -10)
 		scene.add(MyStrand2Box)
 	}
 }
+let ActiveMyStrand1BoxAnimation = true
+function MyStrand1BoxAnimation(ActiveMyStrand1BoxAnimation)
+{
+	if (ActiveMyStrand1BoxAnimation == false)
+		return
 
+	let obj = scene.getObjectByName("MyStrand1Box");
 
+	if (obj === undefined)
+		return
+
+	let Width = obj.geometry.parameters.width
+	const grow = 0.1
+	if (Width <= 40)
+	{
+		obj.geometry = new THREE.BoxGeometry(Width + grow, 1, 5)
+		obj.position.x += (grow/2)
+	}
+	else
+		ActiveMyStrand1BoxAnimation = false
+}
+
+let ActiveMyStrand2BoxAnimation = true
+function MyStrand2BoxAnimation(ActiveMyStrand2BoxAnimation)
+{
+	if (ActiveMyStrand2BoxAnimation == false)
+		return
+
+	let obj = scene.getObjectByName("MyStrand2Box");
+
+	if (obj === undefined)
+		return
+
+	let Width = obj.geometry.parameters.width
+	const grow = 0.01
+	if (Width <= 40)
+	{
+		obj.geometry = new THREE.BoxGeometry(Width + grow, 1, 5)
+		obj.position.x += (grow/2)
+	}
+	else
+		ActiveMyStrand2BoxAnimation = false
+}
 //#endregion
 
 //#region Segment
@@ -722,28 +776,44 @@ RollerBody.add(RollerA)
 RollerBody.add(RollerB)
 RollerBody.add(RollerC)
 RollerBody.add(RollerD)
-//scene.add(RollerBody)
-
-function RollerGroupAnimation()
-{
-	RollerBody.rotateY(0.005)
-}
 
 for (let i = 0; i < 10; i++)
 {
 	const RollerST1 = RollerBody.clone();
 	RollerST1.position.x = -110 + (i * 10);
-	scene.add(RollerST1);
+	RollerST1.name = "RollerSTA" + i
 
 	const RollerST2 = RollerBody.clone();
 	RollerST2.position.set(-110 + (i * 10), 2, -10);
-	scene.add(RollerST2);
+	RollerST2.name = "RollerSTB" + i
 
 	const RollerST3 = RollerBody.clone();
 	RollerST3.position.set(-50 + (i * 10), 2, 0);
-	scene.add(RollerST3);
+	RollerST3.name = "RollerSTC" + i
+
+	scene.add(RollerST1, RollerST2, RollerST3);
 }
 
+for (let i = 0; i < 4; i++)
+{
+	const RollerST4 = RollerBody.clone();
+	RollerST4.position.set(60, 2, (i * 10) + 20);
+	RollerST4.rotateX(Math.PI/2)
+	RollerST4.name = "RollerSTD" + i
+
+	const RollerST5 = RollerBody.clone();
+	RollerST5.position.set(60, 2, (i * -10) - 20);
+	RollerST5.rotateX(Math.PI/2)
+	RollerST5.name = "RollerSTE" + i
+
+	scene.add(RollerST4, RollerST5);
+}
+
+function RollerGroupAnimation()
+{
+	for (let i = 0; i < 10; i++)
+		scene.getObjectByName("RollerSTA" + i).rotateY(0.005)
+}
 
 
 // const RollerA1 = RollerBody.clone();
@@ -782,7 +852,27 @@ ModelBlocker.position.set(-15, 0, -10)
 scene.add(ModelBlocker, ModelBlocker2)
 //#endregion
 
+//#region Turntable
+const TurntableAMGeo = new THREE.CylinderGeometry(10, 10, 1)
+const TurntableAMat = new THREE.MeshStandardMaterial({color: 0xAAAAAA, roughness:0, metalness:0})
+const TurntableA = new THREE.Mesh(TurntableAMGeo, TurntableAMat)
+TurntableA.position.x = 60
 
+const TurntableARoller1 = RollerBody.clone()
+TurntableARoller1.position.set(-5, 2, 0)
+
+const TurntableARoller2 = RollerBody.clone()
+TurntableARoller2.position.set(5, 2, 0)
+
+TurntableA.add(TurntableARoller1, TurntableARoller2)
+
+scene.add(TurntableA)
+
+function TurntableAAnimation()
+{
+	TurntableA.rotateY(0.001)
+}
+//#endregion
 
 //#region Platform group
 PlatformGroup.add(Platform);
@@ -813,8 +903,6 @@ CutMachineAGroup.position.set(-110, 4, 10);
 CutMachineAGroup.name = "CutMachineAGroup";
 scene.add(CutMachineAGroup);
 //#endregion
-
-
 
 //#region select object by mouse
 box.name = "Box";
@@ -860,25 +948,27 @@ function OpenContextMenu(event)
 	{
 		const object = intersects[0].object;
 
+		console.log(object)
 		// Display HTML content based on the object that was clicked
-		if (object.name === "Cube")
+		if (object.name === undefined)
 		{
-			labelRenderer.domElement.style.pointerEvents = '';
-			object.material.color.setHex(Math.random() * 0xffffff);
-			const CubeDiv = document.createElement('div');
-			CubeDiv.className = 'label';
-			CubeDiv.innerHTML = "<ul><li><a href='#'>Coffee</a></li><li>Tea</li><li>Milk</li></ul>";
-
-			const earthLabel = new CSS2DObject(CubeDiv);
-			earthLabel.position.set(1, 0, 0);
-			earthLabel.center.set(0, 0);
-			//earthLabel.layers.set(10);
-			cube.add(earthLabel);
-
-
-
+			return false
 		}
-		else if (object.name === 'Box')
+			
+		labelRenderer.domElement.style.pointerEvents = '';
+		//object.material.color.setHex(Math.random() * 0xffffff);
+		const CubeDiv = document.createElement('div');
+		CubeDiv.className = 'label';
+		CubeDiv.innerHTML = "<ul> <li>"+object.name+"</li> <li><a href='#'>Coffee</a></li>  <li> <a href='?id="+ object.id +"'> properties </a> </li></ul>";
+
+		const earthLabel = new CSS2DObject(CubeDiv);
+		earthLabel.position.set(1, 0, 0);
+		earthLabel.center.set(0, 0);
+		//earthLabel.layers.set(10);
+		object.add(earthLabel);
+
+		
+		if (object.name === 'Box')
 		{
 			// <p> Display HTML content for myOtherObject! ... </p>
 			object.material.color.setHex(Math.random() * 0xffffff);
@@ -957,9 +1047,12 @@ function Animate()
 	AnimateModelPreheater(ModelPreheater)
 	AnimateRotateSegment();
 	MyStrandAnimation()
+	MyStrand1BoxAnimation()
+	MyStrand2BoxAnimation()
 	TorchMovement()
 	CMATorchAFlameAnimation()
 	RollerGroupAnimation()
+	TurntableAAnimation()
 	//MyOrbitControls.update(); // controls.autoRotate disable if we comment this line.
 	MyFirstPersonControls.update(clock.getDelta());
 	renderer.render(scene, camera); // not any more needed.
@@ -970,29 +1063,33 @@ Animate();
 
 
 // center
-// camera.position.set(0, 10, 20); //x, y, z
-// camera.lookAt(0, 0, 0);
+//camera.position.set(0, 50, 50); //x, y, z
+//camera.lookAt(0, 0, 0);
 
 // Turret Group
 camera.position.set(-180, 70, -20); //x, y, z
 camera.lookAt(-200, 50, 0);
 
-// Platform
-camera.position.set(-166, 49, 52); //x, y, z
-camera.lookAt(-166, 30, 0);
+// // Platform
+// camera.position.set(-166, 49, 52); //x, y, z
+// camera.lookAt(-166, 30, 0);
 
-// Strands front
-camera.position.set(-80, 22, 0); //x, y, z
-camera.lookAt(-200, 0, 0);
+// // Strands front
+// camera.position.set(-150, 10, 30); //x, y, z
+// camera.lookAt(-140, 0, 0);
 
-// Cut machine A front
-camera.position.set(-94, 7, 10); //x, y, z
-camera.lookAt(-200, 0, 0);
+// // Strands front
+// camera.position.set(-80, 22, 0); //x, y, z
+// camera.lookAt(-200, 0, 0);
 
-// Roller
-camera.position.set(-90, 10, 0); //x, y, z
-camera.lookAt(-200, -50, 0);
+// // Cut machine A front
+// camera.position.set(-94, 7, 10); //x, y, z
+// camera.lookAt(-200, 0, 0);
 
-// Roller
-camera.position.set(0, 10, 0); //x, y, z
-camera.lookAt(-200, -50, 0);
+// // Roller
+// camera.position.set(-90, 10, 0); //x, y, z
+// camera.lookAt(-200, -50, 0);
+
+// // Roller
+// camera.position.set(0, 10, 0); //x, y, z
+// camera.lookAt(-200, -50, 0);
