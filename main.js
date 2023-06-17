@@ -14,6 +14,7 @@ import { Line2 } from 'three/addons/lines/Line2.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 import * as GeometryUtils from 'three/addons/utils/GeometryUtils.js';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
 
 import * as CANNON from 'cannon-es';
 
@@ -23,6 +24,8 @@ renderer.setClearColor(0x000000);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.xr.enabled = true;
+renderer.xr.setReferenceSpaceType( 'local' );
 document.body.appendChild(renderer.domElement);
 
 // Render Label
@@ -40,15 +43,6 @@ window.addEventListener("resize", function ()
 	camera.updateProjectionMatrix();
 	renderer.setSize(this.window.innerWidth, window.innerHeight);
 	labelRenderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-//for select object by mouse
-const rayCaster = new THREE.Raycaster();
-const mousePosition = new THREE.Vector2();
-window.addEventListener('mousemove', function (e)
-{
-	mousePosition.x = (e.clientX / this.window.innerWidth) * 2 - 1;
-	mousePosition.y = -(e.clientY / this.window.innerHeight) * 2 + 1;
 });
 //#endregion
 
@@ -905,95 +899,66 @@ scene.add(CutMachineAGroup);
 //#endregion
 
 //#region select object by mouse
-box.name = "Box";
-function TrackMouse()
-{
-	requestAnimationFrame(TrackMouse);
-	rayCaster.setFromCamera(mousePosition, camera);
-	const intersects = rayCaster.intersectObjects(scene.children);
-	//console.log(intersects);
-
-	for (let i = 0; i < intersects.length; i++)
-	{
-		if (intersects[i].object.id === cube.id)
-		{
-			intersects[i].object.material.color.setHex(Math.random() * 0xffffff);
-		}
-
-		if (intersects[i].object.name === "Box")
-		{
-			//intersects[i].object.rotation.x += 0.1;
-			box.rotation.x += 0.1;
-		}
-	}
-}
-//TrackMouse();
-
-
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
-function onMouseMove(event)
-{
-	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-}
-
 function OpenContextMenu(event)
 {
-	raycaster.setFromCamera(mouse, camera);
-	const intersects = raycaster.intersectObjects(scene.children);
+	const MyRaycaster = new THREE.Raycaster();
+	const mouse = new THREE.Vector2();
+	//calibrate mouse position
+	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+	MyRaycaster.setFromCamera(mouse, camera);
+	const intersects = MyRaycaster.intersectObjects(scene.children);
+	
+	if (intersects[0].object.type != "Mesh")
+		return false
 
-	if (intersects.length > 0)
+	// remove previous ContextMenu
+	if (scene.getObjectByName("CSS2DObject") !== undefined )
 	{
-		const object = intersects[0].object;
-
-		console.log(object)
-		// Display HTML content based on the object that was clicked
-		if (object.name === undefined)
-		{
-			return false
-		}
-			
-		labelRenderer.domElement.style.pointerEvents = '';
-		//object.material.color.setHex(Math.random() * 0xffffff);
-		const CubeDiv = document.createElement('div');
-		CubeDiv.className = 'label';
-		CubeDiv.innerHTML = "<ul> <li>"+object.name+"</li> <li><a href='#'>Coffee</a></li>  <li> <a href='?id="+ object.id +"'> properties </a> </li></ul>";
-
-		const earthLabel = new CSS2DObject(CubeDiv);
-		earthLabel.position.set(1, 0, 0);
-		earthLabel.center.set(0, 0);
-		//earthLabel.layers.set(10);
-		object.add(earthLabel);
-
-		
-		if (object.name === 'Box')
-		{
-			// <p> Display HTML content for myOtherObject! ... </p>
-			object.material.color.setHex(Math.random() * 0xffffff);
-		}
+		const parent = scene.getObjectByName("CSS2DObject").parent
+		parent.remove(scene.getObjectByName("CSS2DObject"))
 	}
+
+	labelRenderer.domElement.style.pointerEvents = '';
+	intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
+	
+	const Div = document.createElement('div');
+	Div.className = 'ContextMenu';
+	Div.innerHTML =
+		"<ul>" +
+		"<li>" + intersects[0].object.name + "</li>" +
+		"<li> <a href='#'> Coffee </a> </li>" +
+		"<li> <a href='?id=" + intersects[0].object.id + "'> properties </a> </li>" +
+		"</ul>";
+
+	const MyCSS2DObject = new CSS2DObject(Div);
+	MyCSS2DObject.name = "CSS2DObject"
+	MyCSS2DObject.position.set(1, 0, 0);
+	MyCSS2DObject.center.set(0, 0);
+	//earthLabel.layers.set(10);
+	intersects[0].object.add(MyCSS2DObject);
 }
 
 function CloseContextMenu(event)
 {
 	labelRenderer.domElement.style.pointerEvents = 'none';
-	for (let i = 0; i < scene.children.length; i++)
-	{
-		const objects = scene.children[i];
-		for (let i2 = 0; i2 < objects.children.length; i2++)
-		{
-			const child = objects.children[i2];
-			console.log(child)
-			if (child instanceof CSS2DObject)
-			{
-				objects.remove(child);
-			}
-		}
-	}
+	const parent = scene.getObjectByName("CSS2DObject").parent
+	parent.remove(scene.getObjectByName("CSS2DObject"))
+
+	// for (let i = 0; i < scene.children.length; i++)
+	// {
+	// 	const objects = scene.children[i];
+	// 	for (let i2 = 0; i2 < objects.children.length; i2++)
+	// 	{
+	// 		const child = objects.children[i2];
+	// 		//console.log(child)
+	// 		if (child instanceof CSS2DObject)
+	// 		{
+	// 			objects.remove(child);
+	// 		}
+	// 	}
+	// }
 }
-window.addEventListener('mousemove', onMouseMove);
 window.addEventListener('contextmenu', OpenContextMenu);
 window.addEventListener("dblclick", CloseContextMenu);
 
