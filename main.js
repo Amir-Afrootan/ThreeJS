@@ -898,18 +898,22 @@ CutMachineAGroup.name = "CutMachineAGroup";
 scene.add(CutMachineAGroup);
 //#endregion
 
-//#region select object by mouse
+//#region ContextMenu select object by mouse
 function OpenContextMenu(event)
 {
+	//prevent display default browser contextmenu
 	event.preventDefault();
+
 	const MyRaycaster = new THREE.Raycaster();
 	const mouse = new THREE.Vector2();
+	
 	//calibrate mouse position
 	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 	MyRaycaster.setFromCamera(mouse, camera);
 	const intersects = MyRaycaster.intersectObjects(scene.children);
-	
+	intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
+
 	if (intersects[0].object.type != "Mesh")
 		return false
 
@@ -921,7 +925,6 @@ function OpenContextMenu(event)
 	}
 
 	labelRenderer.domElement.style.pointerEvents = '';
-	intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
 	
 	const Div = document.createElement('div');
 	Div.className = 'ContextMenu';
@@ -963,43 +966,40 @@ function CloseContextMenu(event)
 window.addEventListener('contextmenu', OpenContextMenu);
 window.addEventListener("dblclick", CloseContextMenu);
 
-//#endregion
+// const contextMenu = document.createElement('div');
+// contextMenu.innerHTML =
+// 	'<a href="#"> Context. </a>' +
+// 	'<a href="#"> menu. </a>' +
+// 	'<a href="#"> text. </a>'
+// 	;
+// contextMenu.className = 'ContextMenu';
+// renderer.domElement.addEventListener('dblclick', event =>
+// {
+// 	event.preventDefault();
 
-//#region ContextMenu
-const contextMenu = document.createElement('div');
-contextMenu.innerHTML =
-	'<a href="#"> Context. </a>' +
-	'<a href="#"> menu. </a>' +
-	'<a href="#"> text. </a>'
-	;
-contextMenu.className = 'ContextMenu';
-renderer.domElement.addEventListener('dblclick', event =>
-{
-	event.preventDefault();
+// 	// Determine the position of the mouse click
+// 	const x = event.clientX;
+// 	const y = event.clientY;
 
-	// Determine the position of the mouse click
-	const x = event.clientX;
-	const y = event.clientY;
-
-	// Show the context menu element
-	contextMenu.style.top = `${y}px`;
-	contextMenu.style.left = `${x}px`;
-	contextMenu.style.display = 'block';
-});
+// 	// Show the context menu element
+// 	contextMenu.style.top = `${y}px`;
+// 	contextMenu.style.left = `${x}px`;
+// 	contextMenu.style.display = 'block';
+// });
 
 
-// Add a click event listener to the document object
-document.addEventListener('click', event =>
-{
-	// Check whether the click occurred within the context menu
-	if (!contextMenu.contains(event.target))
-	{
-		// If not, hide the context menu
-		contextMenu.style.display = 'none';
-	}
-});
+// // Add a click event listener to the document object
+// document.addEventListener('click', event =>
+// {
+// 	// Check whether the click occurred within the context menu
+// 	if (!contextMenu.contains(event.target))
+// 	{
+// 		// If not, hide the context menu
+// 		contextMenu.style.display = 'none';
+// 	}
+// });
 
-document.body.appendChild(contextMenu);
+// document.body.appendChild(contextMenu);
 //#endregion
 
 //#region Animate
