@@ -131,7 +131,7 @@ const MyCameraHelper = new THREE.CameraHelper(camera);
 //#endregion
 
 //#region Controls
-const controls_labelRenderer = new OrbitControls(camera, labelRenderer.domElement);
+//const controls_labelRenderer = new OrbitControls(camera, labelRenderer.domElement);
 
 //const MyOrbitControls = new OrbitControls(camera, renderer.domElement);
 //MyOrbitControls.listenToKeyEvents(window); // optional
@@ -901,6 +901,7 @@ scene.add(CutMachineAGroup);
 //#region select object by mouse
 function OpenContextMenu(event)
 {
+	event.preventDefault();
 	const MyRaycaster = new THREE.Raycaster();
 	const mouse = new THREE.Vector2();
 	//calibrate mouse position
