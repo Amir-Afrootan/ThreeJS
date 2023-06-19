@@ -7,7 +7,6 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-
 import Stats from 'three/addons/libs/stats.module.js';
 import { GPUStatsPanel } from 'three/addons/utils/GPUStatsPanel.js';
 import { Line2 } from 'three/addons/lines/Line2.js';
@@ -15,11 +14,17 @@ import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 import * as GeometryUtils from 'three/addons/utils/GeometryUtils.js';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
-
 import * as CANNON from 'cannon-es';
 
+//#region Help note
+/*
+Default metalness = 0 mean woods or store
+Default roughness = 1 means fully diffuse
+*/
+//#endregion
+
 //#region WebGLRenderer
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer();//{alpha:true, antialias:true}
 renderer.setClearColor(0x000000);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -441,23 +446,46 @@ world.addBody(CylinderB_MeltBody);
 
 //#region Model Tundish
 //https://www.vectary.com/
-const TundishLoader = new GLTFLoader();
-let ModelTundish;
-TundishLoader.load('Models/Tundish/Tundish.gltf', function (gltf)
-{
-	const model = gltf.scene;
-	model.scale.set(50, 40, 40); // resize the model
-	model.rotation.y = Math.PI / 2;
-	model.position.set(-40, 1, 0);
-	ModelTundish = model;
-	PlatformGroup.add(model);
 
-}, undefined, function (error)
+const TundishModel = await LoadGLTFModel('Models/Tundish/Tundish.gltf');
+TundishModel.scale.set(4, 4, 4); // resize the model
+TundishModel.rotation.y = Math.PI / 2;
+TundishModel.position.set(-40, 1, 0);
+PlatformGroup.add(TundishModel);
+
+const TundishMeltGeo = new THREE.BoxGeometry(58, 8, 8) //Fit size is:(60, 10, 10) //Full size: (58, 8, 8)
+const TundishMeltMat = new THREE.MeshStandardMaterial({color: 0xFF0000, roughness:0, transparent:true, opacity:0.5, side:2})
+const TundishMelt = new THREE.Mesh(TundishMeltGeo, TundishMeltMat)
+TundishMelt.name = "TundishMelt"
+TundishMelt.position.y = 0.5
+TundishMelt.scale.set(0.1, 0.1, 0.1); // resize the model
+TundishModel.add(TundishMelt);
+
+let ActiveTundishMeltAnimation = true
+function TundishMeltAnimation(ActiveTundishMeltAnimation)
 {
-	console.error(error);
-});
-if (ModelTundish)
-	ModelTundish.position.set(-40, 1, 20);
+	if (ActiveTundishMeltAnimation == false)
+		return
+
+	let obj = scene.getObjectByName("TundishMelt");
+
+	if (obj === undefined)
+		return
+
+	const shrink = 0.001 //todo
+	let Height = obj.geometry.parameters.height - shrink
+	
+	if (Height > 0)
+	{
+		obj.geometry = new THREE.BoxGeometry(58, Height, 5)
+		obj.position.y -= (shrink/2)
+	}
+	else
+	ActiveTundishMeltAnimation = false
+}
+
+
+
 //#endregion
 
 //#region Model Preheater
@@ -1010,6 +1038,7 @@ function Animate()
 	AnimateGravity()
 	CylinderA_MeltAnimation()
 	TurretGroupAnimation();
+	TundishMeltAnimation()
 	AnimateModelPreheater(ModelPreheater)
 	AnimateRotateSegment();
 	MyStrandAnimation()
@@ -1034,6 +1063,10 @@ Animate();
 
 // Turret Group
 camera.position.set(-180, 70, -20); //x, y, z
+camera.lookAt(-200, 50, 0);
+
+//Tundish Front
+camera.position.set(-170, 55, 0); //x, y, z
 camera.lookAt(-200, 50, 0);
 
 // // Platform
