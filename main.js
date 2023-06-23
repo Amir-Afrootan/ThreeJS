@@ -56,6 +56,8 @@ const clock = new THREE.Clock();
 const PlatformGroup = new THREE.Group();
 const TurretGroup = new THREE.Group();
 const CutMachineAGroup = new THREE.Group();
+let ActiveTundishMeltAnimation
+
 async function LoadGLTFModel(modelUrl)
 {
 	const loader = new GLTFLoader();
@@ -461,7 +463,6 @@ TundishMelt.position.y = 0.5
 TundishMelt.scale.set(0.1, 0.1, 0.1); // resize the model
 TundishModel.add(TundishMelt);
 
-let ActiveTundishMeltAnimation = true
 function TundishMeltAnimation(ActiveTundishMeltAnimation)
 {
 	if (ActiveTundishMeltAnimation == false)
@@ -472,16 +473,21 @@ function TundishMeltAnimation(ActiveTundishMeltAnimation)
 	if (obj === undefined)
 		return
 
-	const shrink = 0.001 //todo
+	const shrink = 0.01 //shrink speed
 	let Height = obj.geometry.parameters.height - shrink
-	
+	console.log(Height)
+	console.log(ActiveTundishMeltAnimation)
 	if (Height > 0)
 	{
 		obj.geometry = new THREE.BoxGeometry(58, Height, 5)
-		obj.position.y -= (shrink/2)
+		obj.position.y -= (shrink / 20)
 	}
 	else
-	ActiveTundishMeltAnimation = false
+	{
+		ActiveTundishMeltAnimation = false
+		console.log(ActiveTundishMeltAnimation)
+	}
+	
 }
 
 
@@ -1038,7 +1044,7 @@ function Animate()
 	AnimateGravity()
 	CylinderA_MeltAnimation()
 	TurretGroupAnimation();
-	TundishMeltAnimation()
+	TundishMeltAnimation(ActiveTundishMeltAnimation)
 	AnimateModelPreheater(ModelPreheater)
 	AnimateRotateSegment();
 	MyStrandAnimation()
